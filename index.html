@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Trade Republic Analyzer</title>
+    <meta
+      name="description"
+      content="Analizza il tuo export Trade Republic interamente nel browser. Nessun dato viene inviato a un server."
+    />
+    <!--
+      No preconnect, no font link, no analytics tag. Every asset is local, so
+      the Network tab shows nothing but this page and its own bundle — which is
+      what makes the privacy claim on the landing screen checkable.
+    -->
+    <!--
+      The favicon is drawn here rather than fetched, for the same reason: a
+      `favicon.ico` next to the page is still a request. It was `data:,` — an
+      empty icon — until the magnifier below replaced it, and the property that
+      mattered is unchanged.
+
+      The two blues are literals because a data: URI is its own document and
+      cannot read app.css: they are `--accent-strong` from the light palette and
+      `--series-1` from the dark one, picked by measuring the stroke against the
+      browser's own tab greys, where a single colour cannot serve both. Against
+      #fff and the #dee1e6 of an inactive tab, #1f6ac4 holds 5.4:1 and 4.0:1 but
+      #3987e5 falls to 2.7:1; against the #202124 of a dark strip they swap, to
+      3.0:1 and 4.4:1. Hence the media query, which the tab honours live.
+    -->
+    <link
+      rel="icon"
+      href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cstyle%3Ecircle,path{stroke:%231f6ac4}@media(prefers-color-scheme:dark){circle,path{stroke:%233987e5}}%3C/style%3E%3Cg fill='none' stroke-width='2.4' stroke-linecap='round'%3E%3Ccircle cx='10.4' cy='10.4' r='6.3'/%3E%3Cpath d='M15.1 15.1 L20.6 20.6'/%3E%3C/g%3E%3C/svg%3E"
+    />
+    <script type="module" src="/src/ui/main.ts"></script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <noscript>
+      L’analisi avviene interamente nel tuo browser e richiede JavaScript. /
+      The analysis runs entirely in your browser and needs JavaScript.
+    </noscript>
+  </body>
+</html>

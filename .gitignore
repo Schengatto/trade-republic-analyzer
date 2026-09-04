@@ -1,0 +1,21 @@
+# Dot-directories hold per-machine state and never belong on the remote.
+# .github is the one exception: it is the CI config.
+.*/
+!.github/
+
+# Local, private working files (specs, notes, real data exports).
+# Never committed: may contain personal financial data.
+.local/
+
+node_modules/
+dist/
+
+# Playwright output. A trace holds a screenshot of the report, which on a local
+# run would have been rendered from the real export.
+test-results/
+playwright-report/
+
+# Safety net against accidentally committing a real broker export.
+# Synthetic test fixtures are the only exception.
+*.csv
+!tests/fixtures/*.csv

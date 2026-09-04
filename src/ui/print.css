@@ -1,0 +1,274 @@
+/*
+ * The printed report — and therefore the PDF, since "save as PDF" is the print
+ * dialog. There is no PDF library: the SVG charts print as vectors, so a
+ * printed chart stays sharp at any zoom, which a rasterised export would not.
+ *
+ * Print always uses the light palette. Dark mode on paper burns ink and prints
+ * grey text on grey, and a saved PDF is a document rather than a screen.
+ */
+
+@media print {
+  :root,
+  [data-theme="dark"] {
+    --surface-0: #fff;
+    --surface-1: #fff;
+    --surface-2: #fff;
+    --border: #c9c9c9;
+    --border-strong: #9a9a9a;
+
+    --ink: #000;
+    --ink-secondary: #303030;
+    --ink-muted: #4a4a4a;
+
+    --series-1: #1a5fb4;
+    --series-2: #b8410f;
+    /* Paper darkens the poles: a tile that reads on a lit screen is a wash of
+       toner here, and the diverging pair has to survive a greyscale printer. */
+    --pole-positive: #0a6b3f;
+    --pole-negative: #a51d1d;
+    /* Pinned to the light value rather than left alone: every other pole is
+       reset here, so this one silently printed the dark palette's #7a7a7a
+       whenever the reader had dark mode on. */
+    --pole-neutral: #8a8a8a;
+
+    --grid: #dcdcdc;
+    --axis: #8a8a8a;
+
+    --positive: #05613a;
+    --negative: #8f1717;
+
+    --shadow: none;
+
+    color-scheme: light;
+  }
+
+  /* Il gauge non ha override propri: `app.css` gli dà `var(--ink)` e
+     `var(--ink-muted)`, che il blocco qui sopra ha già rifatti per la carta.
+     Ricopiarli a mano stampava la cifra grande #1a1a1a, una sfumatura più
+     chiara di ogni altro nero della pagina — lo stesso inciampo che il
+     commento su `--pole-neutral` commemora. */
+
+  @page {
+    margin: 16mm 14mm;
+  }
+
+  body {
+    background: #fff;
+    font-size: 10.5pt;
+  }
+
+  /*
+   * The rail does not print, so neither does the gutter it sits in.
+   *
+   * Written against the same selectors that open the gutter, because a plain
+   * `body` loses to `html[data-rail] body` on specificity no matter which
+   * stylesheet comes last — and the 48-56px it leaves behind is taken off the
+   * printable width, which is what pushed the month grid past the paper edge.
+   */
+  html[data-rail] body,
+  html[data-rail="open"] body {
+    padding-left: 0;
+    /* The gutter is animated on screen. A print layout is rendered once, and a
+       snapshot taken mid-animation keeps whatever fraction of the gutter the
+       easing had not yet given back. */
+    transition: none;
+  }
+
+  /* Back to a plain block: the viewport-height column that keeps the footer at
+     the bottom of a screen would give the first page a wandering top margin,
+     and there is no viewport to be the height of here. */
+  #app {
+    display: block;
+    min-height: 0;
+    max-width: none;
+    padding: 0;
+  }
+
+  .no-print,
+  .skip-link,
+  .tooltip {
+    display: none !important;
+  }
+
+  .print-only {
+    display: block;
+  }
+
+  .print-header,
+  .print-footer {
+    font-size: 9pt;
+    color: var(--ink-muted);
+  }
+
+  .app-header {
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 12pt;
+    padding-bottom: 8pt;
+  }
+
+  .report {
+    gap: 14pt;
+  }
+
+  /* Sections are the natural unit of the document: never split one in half. */
+  .section,
+  .figure,
+  .tile {
+    break-inside: avoid;
+    page-break-inside: avoid;
+  }
+
+  .section {
+    border: 1px solid var(--border);
+    border-radius: 0;
+    padding: 10pt 12pt;
+    gap: 8pt;
+  }
+
+  /*
+   * On screen the lead section is raised off the page to say "start here".
+   * On paper it is simply first, and a tinted panel would only cost ink — so
+   * the emphasis drops back to the one thing print carries cheaply: size.
+   */
+  .section--lead {
+    padding: 10pt 12pt;
+  }
+
+  .section--lead .section__title {
+    font-size: 1.1em;
+  }
+
+  .section--lead .tile__value {
+    font-size: 1.15em;
+  }
+
+  /* Un controllo su carta è un campo che nessuno può compilare. Quello che il
+     lettore ha scelto lo dice `.performance__range`, che resta stampata: il
+     gauge e le tre cifre parlano di un intervallo, e la pagina lo deve
+     nominare invece di lasciarlo indovinare. */
+  #performance .figure__controls {
+    display: none;
+  }
+
+  /* On paper the table IS the chart's readable form, so it is never collapsed. */
+  .figure__table {
+    display: block;
+  }
+
+  .figure__table > summary {
+    display: none;
+  }
+
+  .figure__table[open] > div,
+  .figure__table > div {
+    display: block;
+  }
+
+  /* Scroll containers have no meaning on paper: show everything. */
+  .table-scroll,
+  .table-scroll--tall {
+    overflow: visible;
+    max-height: none;
+  }
+
+  /* "Show everything" only holds if everything fits, and unwrapping a scroller
+     is what exposes whether it does. `white-space: nowrap` sizes a table from
+     its longest cell, so the widest of these stood ~80px past the 182mm an A4
+     page leaves and lost its last column over the edge. Text may wrap here; a
+     figure may not, because a number split across two lines stops being one. */
+  .data-table {
+    font-size: 8.5pt;
+  }
+
+  .data-table th,
+  .data-table td {
+    white-space: normal;
+  }
+
+  /* Figures only. A column label is prose and may wrap; a number may not,
+     because a number split across two lines stops being one. Holding both
+     nowrap let the *labels* set the table's width — "Yield on cost", "Mean
+     holding" and "Lots closed" are each wider than the figures beneath them,
+     and an auto-layout table cannot shrink below its longest unbreakable cell,
+     so `width: 100%` was powerless and the closed-positions table printed 17px
+     outside its frame. That left 0.4px between it and the paper's edge, which
+     held only while `ui-monospace` resolved to a narrow face: CI has none and
+     falls back to a wider one, so the identical build overflowed on Linux and
+     fit on Windows. */
+  .data-table td.is-numeric {
+    white-space: nowrap;
+  }
+
+  /* The month grid is the one figure meant to scroll inside its own box, and
+     on paper a scroller is not a scroller but a mask: it cut the grid at
+     "Sept", taking the year-totals column and the grand total with it. For an
+     account that turns the year — 2024 holding only November and December —
+     everything that year had to say was in the masked part, so the row printed
+     blank rather than visibly truncated. So the grid fits the page here
+     instead: the columns are re-cut to what the paper leaves, and the figures
+     re-sized to the cells they now land in.
+
+     The 52rem floor is what made it too wide — 832px against the 655 an A4
+     page leaves once the report frame is paid for. The scroller is left alone:
+     it is what turns a future regression into a caught test rather than a
+     silent crop. */
+  .heatmap {
+    min-width: 0;
+  }
+
+  /* Cut as shares of the table rather than in rem: the table is already
+     `width: 100%` under a fixed layout, and absolute column widths that add up
+     to more than the paper leaves make the table overflow its own width — which
+     is the clipping again, one level further out. Percentages divide whatever
+     the page gives, so this holds at any margin. 6 + 12x7 + 10 = 100. */
+  .heatmap thead th {
+    width: 7%;
+    font-size: 0.6rem;
+  }
+
+  .heatmap__corner {
+    width: 6%;
+  }
+
+  .heatmap thead th.heatmap__total-head {
+    width: 10%;
+  }
+
+  .heatmap__year {
+    font-size: 0.62rem;
+  }
+
+  .heatmap__slot {
+    height: 2.6rem;
+  }
+
+  /* `.heatmap__total` sets no size of its own and would otherwise inherit the
+     10.5pt body text, which is larger than the month figures it sits beside. */
+  .heatmap__value,
+  .heatmap__total {
+    font-size: 0.58rem;
+  }
+
+  .data-table th {
+    position: static;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 3pt 6pt;
+  }
+
+  thead {
+    display: table-header-group;
+  }
+
+  tr {
+    break-inside: avoid;
+  }
+
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 8pt;
+    color: var(--ink-muted);
+  }
+}

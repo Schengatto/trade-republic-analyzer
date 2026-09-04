@@ -1,0 +1,51 @@
+name: CI
+
+# Solo sulle pull request: su `main` gli stessi identici gate li esegue già
+# `pages.yml` prima di pubblicare, e tenerli qui significava ricostruire e
+# rieseguire gli e2e due volte per ogni push.
+on:
+  pull_request:
+
+# A pull request that gets pushed to twice does not need the first run finished.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Pinned to the exact floor in package.json's engines.node, so the
+      # version being tested is the version the docs tell contributors to use.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.15.0
+          cache: npm
+
+      - run: npm ci
+
+      - run: npm run lint
+
+      - run: npm run typecheck
+
+      - run: npm test
+
+      # Building before the browser check, and after the cheap checks, means a
+      # failure here is a bundling problem and not a type error that the
+      # previous step would already have caught.
+      - run: npx vite build
+
+      # The bundle must contain no absolute URL a person has not vouched for:
+      # a dependency cannot smuggle in a CDN call without one.
+      - run: npm run check:bundle
+
+      # And the built page, driven for real, must request nothing but its own
+      # three files. This is the privacy claim on the landing screen, checked.
+      - run: npx playwright install --with-deps chromium
+
+      - run: npm run test:e2e

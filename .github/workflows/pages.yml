@@ -1,0 +1,64 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+# Never two deployments at once, but let a queued one finish rather than
+# cancelling it: the last push to main should be what is live.
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Same pin as ci.yml: the floor in package.json's engines.node.
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.15.0
+          cache: npm
+
+      - run: npm ci
+
+      # The same gate as CI: a broken build is never published, even from main.
+      - run: npm run lint
+      - run: npm run typecheck
+      - run: npm test
+
+      - run: npx vite build
+
+      # CI runs these too, but CI and this workflow start from the same push
+      # and neither waits for the other. Repeating them here is what makes
+      # "a page that calls out is never published" true rather than likely.
+      - run: npm run check:bundle
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e
+
+      # Requires Settings > Pages > Source = "GitHub Actions". The workflow
+      # token cannot create the site itself; enablement: true fails here with
+      # "Resource not accessible by integration".
+      - uses: actions/configure-pages@v5
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

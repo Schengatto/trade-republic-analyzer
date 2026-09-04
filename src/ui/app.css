@@ -1,0 +1,1454 @@
+/*
+ * Tokens first, then layout, then components.
+ *
+ * Light and dark are two selected palettes, not an inversion: the dark series
+ * colours are their own steps, validated against the dark surface. Everything
+ * the charts draw with is a custom property declared here, so the chart code
+ * never mentions a colour.
+ *
+ * System fonts only. A web font would be a network request, and the promise on
+ * the landing screen is that there are none.
+ */
+
+:root {
+  --surface-0: #f7f7f7;
+  --surface-1: #ffffff;
+  --surface-2: #f0f0f0;
+  --border: #e5e5e5;
+  --border-strong: #c9c9c9;
+
+  --ink: #0a0a0a;
+  --ink-secondary: #4d4d4d;
+  --ink-muted: #6b6b6b;
+
+  --series-1: #2a78d6;
+  --series-2: #eb6834;
+  --series-3: #7c5cd6;
+  --series-4: #eda100;
+  --series-5: #e87ba4;
+  --pole-positive: #0a8f57;
+  --pole-negative: #e5484d;
+  /* The midpoint of a diverging scale is grey, never a third hue: a month that
+     made nothing must not read as a small gain. */
+  --pole-neutral: #8a8a8a;
+
+  --grid: #ececec;
+  --axis: #a3a3a3;
+
+  /* The poles as text. A fill that reads at 3:1 is not a number that reads at
+     4.5:1, so the ink steps are darker than the tiles they label. */
+  --positive: #067a48;
+  --negative: #c92a2a;
+
+  /* The interactive accent: a fill that has to carry white text at 4.5:1.
+     --series-1 cannot, and is not a candidate — it is a categorical chart slot
+     whose value is fixed by the adjacent-pair checks in chart/palette.ts, and
+     under #fff it measures 4.42:1 here and 3.64:1 in the dark palette. */
+  --accent-strong: #1f6ac4;
+
+  --alert-surface: #fdf3e6;
+  --alert-border: #e0a75c;
+
+  --rail-closed: 56px;
+  --rail-open: 248px;
+
+  --radius: 10px;
+  --radius-sm: 6px;
+  --shadow: 0 1px 2px rgb(0 0 0 / 6%), 0 4px 12px rgb(0 0 0 / 4%);
+
+  --font: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --font-numeric: ui-monospace, "SF Mono", "Cascadia Mono", "Segoe UI Mono", Menlo, monospace;
+
+  color-scheme: light;
+}
+
+[data-theme="dark"] {
+  --surface-0: #0a0a0a;
+  --surface-1: #131313;
+  --surface-2: #1c1c1c;
+  --border: #262626;
+  --border-strong: #3a3a3a;
+
+  --ink: #f5f5f5;
+  --ink-secondary: #b8b8b8;
+  --ink-muted: #8a8a8a;
+
+  --series-1: #3987e5;
+  --series-2: #d95926;
+  --series-3: #8b6ee8;
+  --series-4: #c98500;
+  --series-5: #d55181;
+  --pole-positive: #0f9e6a;
+  --pole-negative: #ef4444;
+  --pole-neutral: #7a7a7a;
+
+  --grid: #232323;
+  --axis: #4d4d4d;
+
+  --positive: #3ddc97;
+  --negative: #ff8080;
+
+  /* Its own step, not the light one reused: a fill on --surface-1 has to stay
+     3:1 from the surface as well as 4.5:1 under its own text. */
+  --accent-strong: #2270cc;
+
+  --alert-surface: #2c2419;
+  --alert-border: #8a6631;
+
+  --shadow: 0 1px 2px rgb(0 0 0 / 40%), 0 4px 14px rgb(0 0 0 / 30%);
+
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  background: var(--surface-0);
+  color: var(--ink);
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.55;
+  -webkit-text-size-adjust: 100%;
+}
+
+/*
+ * The gutter the rail sits in. The attribute is stamped on the root element by
+ * `applyRail`, and only while a report is on screen: the landing page has no
+ * rail and no gutter.
+ */
+html[data-rail] body {
+  padding-left: var(--rail-closed);
+  transition: padding-left 0.18s ease;
+}
+
+html[data-rail="open"] body {
+  padding-left: var(--rail-open);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-rail] body {
+    transition: none;
+  }
+}
+
+h1,
+h2,
+h3 {
+  line-height: 1.25;
+  margin: 0;
+}
+
+p {
+  margin: 0;
+}
+
+/* --- shell --------------------------------------------------------------- */
+
+/*
+ * A column the height of the viewport, so that the footer's disclaimers sit at
+ * the foot of a short landing screen instead of halfway up it. The children
+ * were already full-width blocks, and the negative gutter margins on .app-bar
+ * still widen it the same way here.
+ */
+#app {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 24px 20px 72px;
+}
+
+/* Takes the slack, so the footer below it reaches the foot of a short page. */
+.app-main {
+  flex: 1;
+}
+
+.app-header {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px 24px;
+  align-items: flex-end;
+  justify-content: space-between;
+  padding-bottom: 16px;
+}
+
+/*
+ * The controls and the outline, pinned.
+ *
+ * Negative margins let the bar's background span the full gutter while the
+ * page keeps its padding; the blur is decoration only, and the surface behind
+ * it is opaque enough to read against on its own.
+ */
+.app-bar {
+  position: sticky;
+  top: 0;
+  z-index: 5;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px 24px;
+  align-items: flex-end;
+  justify-content: space-between;
+  margin: 0 -20px 28px;
+  padding: 12px 20px;
+  background: color-mix(in srgb, var(--surface-0) 88%, transparent);
+  backdrop-filter: blur(8px);
+  border-bottom: 1px solid var(--border);
+}
+
+.app-bar__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+/* --- the section rail ---------------------------------------------------- */
+
+/*
+ * Fourteen sections never fitted a line, and a row of links that scrolls
+ * sideways hides most of itself. Down the side they all fit at once.
+ *
+ * The rail is fixed to the viewport and the room for it is made by padding the
+ * body, so the report keeps its own centred column and nothing in it had to
+ * learn about a second column.
+ */
+.rail {
+  position: fixed;
+  inset-block: 0;
+  left: 0;
+  z-index: 20;
+  width: var(--rail-closed);
+}
+
+.rail__panel {
+  position: absolute;
+  inset-block: 0;
+  left: 0;
+  width: var(--rail-closed);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 8px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--surface-1);
+  border-right: 1px solid var(--border);
+  transition: width 0.18s ease;
+}
+
+.rail[data-open="true"] .rail__panel {
+  width: var(--rail-open);
+}
+
+.rail__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.rail__toggle,
+.rail__link {
+  position: relative;
+  display: flex;
+  flex: none;
+  align-items: center;
+  gap: 12px;
+  /* A minimum rather than a height: two of the headings need a second line, and
+     cutting them off mid-word reads as a bug rather than as a shortened label. */
+  min-height: 38px;
+  padding: 6px 8px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: none;
+  font: inherit;
+  color: var(--ink-muted);
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.rail__toggle {
+  margin-bottom: 6px;
+}
+
+.rail__icon {
+  flex: none;
+}
+
+/* The chevron points the way the panel will move. */
+.rail[data-open="true"] .rail__icon--chevron {
+  transform: rotate(180deg);
+}
+
+.rail__link:hover,
+.rail__toggle:hover,
+.rail__link:focus-visible,
+.rail__toggle:focus-visible {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+/*
+ * The section being read. The bar on the edge is what carries it when the rail
+ * is closed, where a weight change on a hidden label would say nothing.
+ */
+.rail__link[aria-current] {
+  background: var(--surface-2);
+  color: var(--ink);
+}
+
+.rail__link[aria-current]::before {
+  content: "";
+  position: absolute;
+  left: -8px;
+  top: 7px;
+  bottom: 7px;
+  width: 3px;
+  border-radius: 0 3px 3px 0;
+  background: var(--series-1);
+}
+
+.rail__text {
+  font-size: 0.85rem;
+  line-height: 1.25;
+}
+
+/*
+ * Closed, the label becomes its own tooltip — the same node, moved, so the
+ * title cannot drift from the one the tooltip shows and a screen reader still
+ * reads the section's name.
+ *
+ * It is `fixed` and placed from script because the panel scrolls when the
+ * viewport is short, and a scroll container clips anything absolute that
+ * reaches past its edge.
+ */
+.rail[data-open="false"] .rail__text {
+  position: fixed;
+  left: calc(var(--rail-closed) + 8px);
+  /* Open, a long heading wraps to a second line; wrapped beside a 56px rail it
+     would be a column of two words, so the tooltip stays on one line. */
+  white-space: nowrap;
+  transform: translateY(-50%) translateX(-4px);
+  padding: 5px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface-1);
+  box-shadow: var(--shadow);
+  color: var(--ink);
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transition:
+    opacity 0.12s ease,
+    transform 0.12s ease,
+    visibility 0.12s;
+}
+
+.rail[data-open="false"] .rail__link:hover .rail__text,
+.rail[data-open="false"] .rail__link:focus-visible .rail__text,
+.rail[data-open="false"] .rail__toggle:hover .rail__text,
+.rail[data-open="false"] .rail__toggle:focus-visible .rail__text {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(-50%) translateX(0);
+}
+
+.rail__scrim {
+  display: none;
+}
+
+/*
+ * Narrow: the panel floats over the report instead of pushing it, because
+ * there is no width left to push into. It is dismissed by the scrim, by Escape,
+ * and by choosing a section.
+ */
+@media (max-width: 700px) {
+  :root {
+    --rail-closed: 48px;
+  }
+
+  html[data-rail="open"] body {
+    padding-left: var(--rail-closed);
+  }
+
+  .rail[data-open="true"] .rail__panel {
+    box-shadow: var(--shadow);
+  }
+
+  .rail[data-open="true"] .rail__scrim {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: rgb(0 0 0 / 45%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .rail__panel,
+  .rail__text {
+    transition: none;
+  }
+}
+
+.app-header__title {
+  font-size: 1.4rem;
+  letter-spacing: -0.01em;
+}
+
+.app-header__tagline {
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.control--actions {
+  flex-direction: row;
+  gap: 8px;
+  align-items: center;
+}
+
+.control__label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+}
+
+/* Un interruttore non è la didascalia di un campo: la sua etichetta è la frase
+   che il lettore accende, quindi resta in tondo e in inchiostro pieno. */
+.control__label--inline {
+  font-size: 0.8125rem;
+  text-transform: none;
+  letter-spacing: normal;
+  color: var(--ink);
+}
+
+/* Allineata in basso, sulla linea dei due campi data: appesa in alto
+   galleggerebbe accanto alle loro etichette invece che accanto alle date. */
+.control--check {
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  align-self: flex-end;
+  padding-bottom: 8px;
+  cursor: pointer;
+}
+
+.control__check {
+  width: 16px;
+  height: 16px;
+  margin: 0;
+  accent-color: var(--accent-strong);
+  cursor: pointer;
+}
+
+/* Due campi affiancati che il pollice deve poter separare; a schermo stretto
+   si impilano invece di stringersi sotto la larghezza di una data. */
+.control-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.control__select,
+.control__date,
+.button {
+  font: inherit;
+  font-size: 0.875rem;
+  color: var(--ink);
+  background: var(--surface-1);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  padding: 7px 12px;
+  cursor: pointer;
+}
+
+.button--primary {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  color: #fff;
+  font-weight: 600;
+  padding: 10px 18px;
+}
+
+.button:disabled {
+  opacity: 0.55;
+  cursor: progress;
+}
+
+.button:focus-visible,
+.control__select:focus-visible,
+.control__date:focus-visible,
+.control__check:focus-visible,
+a:focus-visible,
+summary:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--series-1);
+  outline-offset: 2px;
+}
+
+.skip-link {
+  position: absolute;
+  left: -9999px;
+}
+
+/*
+ * Revealing the link is the whole of its job, so focus turns it into a chip
+ * rather than recolouring its text: it takes the fill --accent-strong already
+ * carries on the primary button. As an ink that token is unusable here — it is
+ * a step darker than --series-1 in the dark palette, where it reads 4.01:1 on
+ * the page — and --series-1, the categorical slot that used to ink it, measured
+ * 4.12:1 on --surface-0 in the light one.
+ */
+.skip-link:focus {
+  position: static;
+  background: var(--accent-strong);
+  color: #fff;
+  padding: 7px 12px;
+  border-radius: var(--radius-sm);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* --- landing ------------------------------------------------------------- */
+
+.landing {
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(0, 3fr) minmax(0, 2fr);
+  align-items: stretch;
+}
+
+@media (max-width: 780px) {
+  .landing {
+    grid-template-columns: 1fr;
+  }
+}
+
+.dropzone {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 40px 32px;
+  background: var(--surface-1);
+  border: 2px dashed var(--border-strong);
+  border-radius: var(--radius);
+}
+
+.dropzone.is-active {
+  border-color: var(--series-1);
+  background: var(--surface-2);
+}
+
+.dropzone__heading {
+  font-size: 1.15rem;
+}
+
+.dropzone__instruction {
+  color: var(--ink-secondary);
+}
+
+.dropzone__hint,
+.dropzone__status {
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+}
+
+.dropzone__error {
+  border-left: 3px solid var(--negative);
+  padding-left: 12px;
+  color: var(--ink-secondary);
+  font-size: 0.9rem;
+}
+
+.dropzone__error-heading {
+  font-weight: 600;
+  color: var(--negative);
+}
+
+.privacy-card {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 20px;
+  font-size: 0.9rem;
+  color: var(--ink-secondary);
+}
+
+.privacy-card__heading {
+  font-size: 0.95rem;
+  color: var(--ink);
+}
+
+.privacy-card__lead {
+  margin-top: 8px;
+}
+
+/*
+ * A hairline between rows, never around each one: the list is one statement in
+ * three parts, and boxing every part turns it into three unrelated notices.
+ */
+.privacy-card__facts {
+  margin: 16px 0 0;
+}
+
+.privacy-card__facts dd + dt {
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--border);
+}
+
+.privacy-card__term {
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.privacy-card__detail {
+  margin: 4px 0 0;
+}
+
+.privacy-card__link {
+  display: inline-block;
+  margin-top: 16px;
+}
+
+/* --- report -------------------------------------------------------------- */
+
+.report {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.section {
+  background: var(--surface-1);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  /* Clears the sticky bar when an outline link jumps here. */
+  scroll-margin-top: 96px;
+}
+
+/*
+ * The headline result, given the weight it earns.
+ *
+ * Fourteen sections at one weight is a list: nothing says where to start. The
+ * lead section is the answer, the rest are the working, and the difference is
+ * carried by surface and scale rather than by a colour nothing else uses.
+ */
+.section--lead {
+  background: var(--surface-2);
+  border-color: var(--border-strong);
+  padding: 32px;
+}
+
+.section--lead .section__title {
+  font-size: 1.3rem;
+}
+
+.section--lead .tile {
+  background: var(--surface-1);
+}
+
+.section--lead .tile__value {
+  font-size: 1.6rem;
+}
+
+.section__title {
+  font-size: 1.05rem;
+  letter-spacing: -0.005em;
+}
+
+/*
+ * Sub-headings inside a section.
+ *
+ * Without this an <h3> renders at the browser default of 1.17em — larger than
+ * the 1.05rem section title above it, inverting the hierarchy it is meant to
+ * sit under.
+ */
+.subheading {
+  font-size: 0.8rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-muted);
+  font-weight: 600;
+  margin-top: 4px;
+}
+
+/* The line above the total. Previously classed but never styled, so the
+   browser default (an inset border on an auto-width block) drew a small dot. */
+.rule {
+  width: 100%;
+  height: 0;
+  border: 0;
+  border-top: 1px solid var(--border-strong);
+  margin: 4px 0 0;
+}
+
+.section__meta,
+.note {
+  font-size: 0.875rem;
+  color: var(--ink-muted);
+  max-width: 68ch;
+}
+
+.banner {
+  border: 1px solid var(--alert-border);
+  background: var(--alert-surface);
+  border-radius: var(--radius);
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.banner__heading {
+  font-size: 0.95rem;
+}
+
+.banner__list {
+  margin: 0;
+  padding-left: 20px;
+}
+
+/* --- tiles and amounts --------------------------------------------------- */
+
+.tiles {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+}
+
+.tile {
+  background: var(--surface-2);
+  border-radius: var(--radius-sm);
+  padding: 14px 16px;
+}
+
+.tile__label {
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--ink-muted);
+}
+
+.tile__value {
+  font-family: var(--font-numeric);
+  font-size: 1.35rem;
+  font-variant-numeric: tabular-nums;
+  margin-top: 4px;
+}
+
+.tile__hint {
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+  margin-top: 4px;
+}
+
+.is-positive {
+  color: var(--positive);
+}
+
+.is-negative {
+  color: var(--negative);
+}
+
+/* Zero is a result too, and it is neither. Stated rather than left to
+   inheritance, so a neutral cell is not read as an unstyled one. */
+.is-neutral {
+  color: var(--ink);
+}
+
+.is-emphasis {
+  font-weight: 600;
+}
+
+.amounts {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 6px 24px;
+  margin: 0;
+  font-size: 0.925rem;
+}
+
+.amounts dt {
+  color: var(--ink-secondary);
+}
+
+.amounts dd {
+  margin: 0;
+}
+
+.is-numeric {
+  text-align: right;
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+}
+
+.verdict {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+}
+
+.verdict--ok {
+  color: var(--positive);
+}
+
+.verdict--bad {
+  color: var(--negative);
+}
+
+.verdict__mark {
+  font-size: 1.1rem;
+}
+
+.limits {
+  margin: 0;
+  padding-left: 20px;
+  color: var(--ink-secondary);
+  font-size: 0.9rem;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* --- tables -------------------------------------------------------------- */
+
+.table-scroll {
+  overflow-x: auto;
+}
+
+.table-scroll--tall {
+  max-height: 460px;
+  overflow-y: auto;
+}
+
+.data-table {
+  border-collapse: collapse;
+  width: 100%;
+  font-size: 0.875rem;
+}
+
+.data-table th,
+.data-table td {
+  padding: 7px 12px;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.data-table th {
+  position: sticky;
+  top: 0;
+  background: var(--surface-1);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--ink-muted);
+}
+
+.data-table td.is-numeric,
+.data-table th.is-numeric {
+  text-align: right;
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+}
+
+.rankings {
+  display: grid;
+  /* `auto-fit` drops surplus columns, but it never shrinks a track below the
+     minimum: a bare 280px would stay 280px wide inside a 237px phone column and
+     push the document sideways. `min()` caps the minimum at the space there
+     actually is, so the last resort is a narrower track rather than a wider
+     page. */
+  grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
+  gap: 24px;
+}
+
+/* --- figures and charts -------------------------------------------------- */
+
+.figure {
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.figure__title {
+  font-size: 0.95rem;
+}
+
+.figure__description,
+.figure__empty {
+  font-size: 0.85rem;
+  color: var(--ink-muted);
+  max-width: 68ch;
+}
+
+.figure__controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+.figure__control {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  color: var(--ink-secondary);
+}
+.figure__select {
+  font: inherit;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-1);
+  color: var(--ink);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  font-size: 0.82rem;
+  color: var(--ink-secondary);
+}
+
+.legend__item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.legend__swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.legend__toggle {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 6px;
+  margin: -2px -6px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+.legend__toggle:hover:not(:disabled) {
+  background: var(--surface-2);
+}
+.legend__toggle:disabled {
+  cursor: default;
+}
+.legend__item--off .legend__toggle {
+  text-decoration: line-through;
+  color: var(--ink-muted);
+}
+.legend__hint {
+  color: var(--ink-muted);
+  font-size: 0.78rem;
+}
+
+.plot-host {
+  position: relative;
+}
+
+/*
+ * Scatola fissa, non in percentuale: una scatola con `aspect-ratio` ha già
+ * lasciato una volta un controllo di leggibilità a tirare a indovinare.
+ */
+.chart--gauge {
+  display: block;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+}
+
+/*
+ * Il testo sta nel vuoto sotto l'arco, sul fondo della card: nessuno dei due
+ * poli regge dell'inchiostro sopra a piena intensità.
+ */
+.chart__gauge-value {
+  font-size: 30px;
+  font-weight: 600;
+  fill: var(--ink);
+}
+
+.chart__gauge-caption {
+  font-size: 13px;
+  fill: var(--ink-muted);
+}
+
+/* L'intervallo scelto, dichiarato a parole: i due campi data non si stampano,
+   quindi senza questa riga la pagina stampata non direbbe di che periodo
+   parlano il gauge e le tre cifre qui sotto. */
+/* `.performance__withheld` sta nello stesso registro: è l'altra frase che
+   dichiara il periodo, non una cifra da leggere come le tre tile. Vuota non
+   occupa niente — la sezione è flex e un `<p>` senza contenuto non ha altezza,
+   ma il `gap` sì, quindi va tolta dal flusso invece che lasciata vuota. */
+.performance__range,
+.performance__withheld {
+  /* La sezione è una colonna flex con il proprio `gap`: un margine qui si
+     sommerebbe a quello, staccando la riga dalla nota che la precede. */
+  margin: 0;
+  color: var(--ink-muted);
+  font-size: 0.9rem;
+}
+
+.performance__withheld:empty {
+  display: none;
+}
+
+.performance__range--invalid {
+  color: var(--negative);
+  font-weight: 600;
+}
+
+/* Le tre cifre giornaliere, sotto la figura e dentro la stessa card. */
+.performance__figures {
+  margin-top: 16px;
+}
+
+/* The hover readout hangs here, outside the scroller: mounted inside it, the
+   scroller's own overflow would clip the box on whichever side the reader is
+   pointing at. */
+.heatmap-wrap {
+  position: relative;
+}
+
+/* The grid scrolls, never the page: twelve columns of two-line cells do not
+   fit at 375px, and a horizontally scrolling document is a layout bug that
+   e2e/narrow-viewport.spec.ts asserts against. */
+.heatmap-scroll {
+  overflow-x: auto;
+  max-width: 100%;
+}
+
+.heatmap {
+  border-collapse: separate;
+  border-spacing: 2px;
+  table-layout: fixed;
+  /* Fixed layout reads its column widths from the first row and from nowhere
+     else, so the table has to be given a width for those widths to divide.
+     Left `auto` it falls back to sizing itself from its contents, and a long
+     figure in one month widens that month's column alone. */
+  width: 100%;
+  min-width: 52rem;
+}
+
+/* Every width in the grid lives on a heading, because that is the only row
+   `table-layout: fixed` looks at. The abbreviated figure is what these have to
+   hold: `-19,4K €` at 0.7rem, tabular, plus the cell's own padding. */
+.heatmap thead th {
+  width: 3.7rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  padding-bottom: 0.25rem;
+  text-align: center;
+}
+
+.heatmap__corner {
+  width: 3rem;
+}
+
+.heatmap thead th.heatmap__total-head {
+  width: 4.4rem;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.heatmap__year {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  padding-right: 0.5rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.heatmap__slot {
+  padding: 0;
+  height: 3.4rem;
+}
+
+/* The margins carry no tint. A sum is not a month, and giving it a place on
+   the same colour ramp would invite the reader to compare the two — so they
+   are set apart by weight and by a rule, and left on the page's own ground.
+   The rule is drawn per cell: `border-spacing` breaks it every column, which
+   at 1px against 2px of gap still reads as a hairline. */
+.heatmap__total {
+  padding: 0.2rem;
+  text-align: center;
+  color: var(--ink);
+  font-weight: 700;
+}
+
+/* The rule belongs to the totals *column*, and `.heatmap__total` is worn by
+   both margins — so it is asked for by position, not by class. */
+.heatmap thead .heatmap__total-head,
+.heatmap tbody .heatmap__total,
+.heatmap .heatmap__total--grand {
+  border-left: 1px solid var(--border-strong);
+}
+
+.heatmap tfoot th,
+.heatmap tfoot td {
+  border-top: 1px solid var(--border-strong);
+  padding-top: 0.4rem;
+}
+
+.heatmap tfoot .heatmap__year {
+  color: var(--ink);
+  font-weight: 700;
+}
+
+.heatmap__cell {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  padding: 0.2rem;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  background: none;
+  color: inherit;
+  font: inherit;
+  line-height: 1.15;
+  cursor: pointer;
+}
+
+.heatmap__fill {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: 3px;
+}
+
+.heatmap__value {
+  font-size: 0.7rem;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --series-1, not a --focus token: this file has no --focus, and every other
+   focus ring here is drawn in the same colour. */
+.heatmap__cell:focus-visible {
+  outline: 2px solid var(--series-1);
+  outline-offset: 1px;
+}
+
+/* The two states of the monthly figure: the grid of months, and one month
+   opened into its parts. Only one is in the DOM at a time. */
+.plot-open {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+}
+
+/* The figure's own heading is written once and has to cover both states, so
+   the month being shown is named here, inside the plot. */
+.plot-caption {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.figure__back {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 4px 10px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface-1);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.figure__back:focus-visible {
+  outline: 2px solid var(--series-1);
+  outline-offset: 1px;
+}
+
+/* Positioned in percentages inside a box of fixed height, so the layout
+   squarify computed survives every viewport width without recomputation.
+
+   Fixed rather than an aspect ratio, for two reasons. A ratio makes the box as
+   tall as the panel is wide — 557px on a desktop, for five components — and it
+   makes treemap.ts's "is this tile tall enough for its label" arithmetic a
+   guess: that check is a percentage of the box, so with a box whose height
+   moves with the viewport it can only be taken against the *shortest* the box
+   might be, and it then drops labels off tiles that had room for them. In rem,
+   so it grows with the type it has to hold. */
+.treemap {
+  position: relative;
+  width: 100%;
+  height: 16rem;
+}
+
+/* --surface-1, not a bare --surface: this file has no --surface token. The
+   hairline is drawn in the panel's own colour so the tiles read as separated
+   rather than as one field of colour. No cursor and no focus ring: a tile is
+   inert, because there is nothing below a component to open. */
+.treemap__tile {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--surface-1);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+/* A chip with a ground of its own, not bare text on the tile. The poles are
+   painted here at full strength — the heatmap's opacity ramp is what lets its
+   cells carry text, and this figure has no ramp, because the area already says
+   how big and the colour is left saying only which way. Measured on the raw
+   poles, --ink is 3.87:1 on the light positive and 4.32:1 on the light
+   negative; white is 4.41:1 and 3.95:1. Nothing clears 4.5:1, so the text
+   needs its own ground. --surface-1 is the panel's colour, the same hairline
+   the tiles are separated by, and --ink on it is 16.6:1 light, 15.2:1 dark. */
+.treemap__text {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2px 5px;
+  border-radius: 3px;
+  background: var(--surface-1);
+  color: var(--ink);
+  max-width: 100%;
+}
+
+.treemap__label {
+  font-size: 0.62rem;
+  font-weight: 600;
+  /* A tile narrower than its own label must clip it rather than spill over a
+     neighbour and label the wrong component. The vertical case never reaches
+     here: treemap.ts omits the text outright on a tile too short for a whole
+     line, because a clipped line reads as a rendering fault, not a label. */
+  white-space: nowrap;
+}
+
+.treemap__amount {
+  font-size: 0.7rem;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.chart {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+.chart__tick {
+  font-size: 11px;
+  font-family: var(--font);
+}
+
+/* The bar carries the colour; this label only has to be readable. Painting it
+   with the bar's own fill instead measured 3.20:1 for --series-2 and 4.42:1 for
+   --series-1 at this size — a geometry colour is chosen to be seen as an area,
+   which is a weaker duty than being read as 11px text. */
+.chart__endpoint {
+  font-size: 11px;
+  font-family: var(--font-numeric);
+  font-weight: 600;
+  fill: var(--ink-secondary);
+}
+
+.chart__hit {
+  fill: transparent;
+}
+
+.figure__table > summary {
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+}
+
+/* --- tooltip ------------------------------------------------------------- */
+
+.tooltip {
+  position: absolute;
+  pointer-events: none;
+  transform: translate(12px, -50%);
+  background: var(--surface-1);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow);
+  padding: 8px 10px;
+  font-size: 0.8rem;
+  min-width: 150px;
+  z-index: 2;
+}
+
+.tooltip--flip {
+  transform: translate(calc(-100% - 12px), -50%);
+}
+
+.tooltip__title {
+  font-weight: 600;
+  margin-bottom: 4px;
+}
+
+.tooltip__rows {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.tooltip__rows li {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.tooltip__swatch {
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+}
+
+.tooltip__label {
+  color: var(--ink-secondary);
+}
+
+.tooltip__value {
+  margin-left: auto;
+  font-family: var(--font-numeric);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- footer -------------------------------------------------------------- */
+
+/*
+ * Pushed to the foot of the viewport rather than left floating under a short
+ * landing screen. The growing is done by .app-main above, not by
+ * `margin-top: auto` here: auto collapses to nothing once the page is long
+ * enough to scroll, and the rule would then sit against the last section with
+ * none of the 32px the sections keep between themselves.
+ */
+.site-footer {
+  margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
+  display: grid;
+  gap: 20px 32px;
+  grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+  align-items: start;
+  font-size: 0.8rem;
+  color: var(--ink-secondary);
+}
+
+@media (max-width: 780px) {
+  .site-footer {
+    grid-template-columns: 1fr;
+  }
+}
+
+.site-footer__heading {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--ink-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: 8px;
+}
+
+.site-footer__note + .site-footer__note {
+  margin-top: 6px;
+}
+
+.site-footer__meta {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.site-footer__links {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 16px;
+}
+
+/*
+ * Links take --ink-secondary and carry their affordance in the underline.
+ * Neither accent works as ink in both themes: --accent-strong measures 4.01:1
+ * on the dark ground and --series-1 4.12:1 on the light one, so a coloured link
+ * would have needed a token of its own to say something the underline already
+ * says.
+ */
+.site-footer a,
+.privacy-card__link {
+  color: var(--ink-secondary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  /* Mixed from the text rather than named as a border: --border-strong is
+     #3a3a3a on the dark ground and the underline all but vanished, taking the
+     only thing that said "link" with it. */
+  text-decoration-color: color-mix(in srgb, currentcolor 45%, transparent);
+}
+
+.site-footer a:hover,
+.privacy-card__link:hover {
+  color: var(--ink);
+  text-decoration-color: currentcolor;
+}
+
+.print-only {
+  display: none;
+}
