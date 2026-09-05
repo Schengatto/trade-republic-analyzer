@@ -712,11 +712,21 @@ summary:focus-visible,
   margin: 4px 0 0;
 }
 
+/*
+ * Prose inside a section.
+ *
+ * The measure is a cap on the line, not a column: at 68ch of a 0.875rem font a
+ * paragraph stopped less than halfway across a 1000px card and read as a stray
+ * narrow block beside the full-width chart it describes. 92ch of a slightly
+ * larger font reaches about three quarters of the card — long enough to look
+ * deliberate, short enough that the eye still finds the next line.
+ */
 .section__meta,
 .note {
-  font-size: 0.875rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
   color: var(--ink-muted);
-  max-width: 68ch;
+  max-width: 92ch;
 }
 
 .banner {
@@ -908,11 +918,15 @@ summary:focus-visible,
   font-size: 0.95rem;
 }
 
+/* The caption of a chart that spans the card: same measure as the prose above
+   it, so the two paragraphs of a section end on the same line rather than in
+   two different columns. */
 .figure__description,
 .figure__empty {
-  font-size: 0.85rem;
+  font-size: 0.9rem;
+  line-height: 1.55;
   color: var(--ink-muted);
-  max-width: 68ch;
+  max-width: 92ch;
 }
 
 .figure__controls {
