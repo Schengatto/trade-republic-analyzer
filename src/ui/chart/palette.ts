@@ -30,6 +30,30 @@
  * Slot 3 is violet rather than the green it once was: beside a green gain pole,
  * a green category reads as a profit it is not.
  *
+ * The two families are now drawn as neighbours, not only in the same report:
+ * the #capital figure pairs the average capital (slot 1) with the month's
+ * result (a pole) 2px apart in one group, which is a cross-family adjacent pair
+ * the lists above never covered. Measured with the same validator, worst of
+ * simulated protanopia and deuteranopia, then unsimulated:
+ *
+ *   slot 1 ↔ gain pole:  ΔE 21.3 light / 20.2 dark / 19.4 paper — 22.6 / 21.8 /
+ *     20.2 normal
+ *   slot 1 ↔ loss pole:  ΔE 21.0 light / 24.0 dark / 24.1 paper — 32.3 / 33.6 /
+ *     29.4 normal
+ *
+ * Clear of the 8 target and of the 15 normal-vision floor in every mode, so the
+ * pairing needed no separator, no reordering and no token of its own. It is not
+ * left to the eye: tests/ui/adjacent-fills.test.ts re-measures it from the two
+ * stylesheets on every run, in light, dark and both printed themes.
+ *
+ * The one weak axis is tritanopia, where slot 1 and the gain pole converge (ΔE
+ * 4.1–5.4). It is not the axis the validator gates and it is discharged the same
+ * way the rest of the palette is: the two bars are told apart by a fixed order
+ * within the group, by lengths of different orders of magnitude, by the legend,
+ * by a per-bar aria-label and by the table. What a tritanope still separates
+ * cleanly is gain from loss — ΔE 34.8 light, 36.2 dark — which is the reading
+ * the colour is actually carrying.
+ *
  * The sub-3:1 contrast warnings are discharged, not dismissed: every figure
  * carries a legend, a hover readout and a mandatory table, so no slot has to be
  * told apart from the surface by its fill alone.
