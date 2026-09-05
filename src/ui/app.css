@@ -1026,8 +1026,12 @@ summary:focus-visible,
    dichiara il periodo, non una cifra da leggere come le tre tile. Vuota non
    occupa niente — la sezione è flex e un `<p>` senza contenuto non ha altezza,
    ma il `gap` sì, quindi va tolta dal flusso invece che lasciata vuota. */
+/* `.capital__year` è la stessa riga per la stessa ragione: il `<select>`
+   dell'anno non si stampa, e senza questa frase la figura stampata mostrerebbe
+   dodici mesi senza dire di quale anno sono. */
 .performance__range,
-.performance__withheld {
+.performance__withheld,
+.capital__year {
   /* La sezione è una colonna flex con il proprio `gap`: un margine qui si
      sommerebbe a quello, staccando la riga dalla nota che la precede. */
   margin: 0;

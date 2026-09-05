@@ -215,17 +215,18 @@ export const it = {
   'monthly.column.transactions': 'Righe BUY e SELL',
 
   'capital.heading': 'Capitale e rendimento',
-  'capitalInvested.heading': 'Capitale medio investito',
-  'capitalInvested.description':
-    'Il costo delle posizioni aperte, misurato a fine di ogni giornata e mediato sui giorni del mese, weekend compresi. Il primo e l’ultimo mese sono parziali: la colonna dei giorni dice su quanti giorni la media è stata presa.',
+  'capital.figure': 'Capitale e risultato, mese per mese',
+  'capital.description':
+    'Per ogni mese due barre: il costo delle posizioni aperte, misurato a fine di ogni giornata e mediato sui giorni del mese weekend compresi, e accanto le compravendite realizzate più i dividendi dello stesso mese. Il grafico mostra un anno per volta; la tabella li elenca tutti, con i giorni su cui ogni media è stata presa — il primo e l’ultimo mese sono parziali.',
+  'capital.year': 'Anno',
+  'capital.showing': 'Il grafico mostra il {year}.',
+  'capital.legend.gain': 'Mese in utile',
+  'capital.legend.loss': 'Mese in perdita',
   'capitalInvested.series': 'Capitale medio investito',
+  'capitalProfit.series': 'Risultato del mese',
   'capital.column.month': 'Mese',
   'capital.column.capital': 'Capitale medio',
   'capital.column.days': 'Giorni',
-  'capitalProfit.heading': 'Quanto ha prodotto quel capitale',
-  'capitalProfit.description':
-    'Compravendite realizzate e dividendi dello stesso mese, sulle stesse colonne del grafico qui sopra: un mese si legge in verticale, quanto capitale era a rischio e quanto ha reso.',
-  'capitalProfit.series': 'Utile del mese',
   'capital.column.profit': 'Utile',
   'capital.column.return': 'Rendimento',
   'capital.caution':

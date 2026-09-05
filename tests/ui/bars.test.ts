@@ -11,8 +11,10 @@
 import { describe, expect, it } from 'vitest';
 import {
   barChart,
+  groupedRowChart,
   horizontalBarChart,
   stackedBarChart,
+  type GroupedRow,
   type StackedColumn,
 } from '../../src/ui/chart/bars';
 
@@ -236,5 +238,163 @@ describe('barChart tick labels', () => {
       host(),
     )!;
     expect(tickLabels(root)).toContain('0.50');
+  });
+});
+
+/**
+ * The grouped rows on «Capital and return».
+ *
+ * Two quantities per month, side by side, on a metre the caller fixes over the
+ * whole history. What is worth guarding is what a reader cannot check by
+ * looking: that the metre really is the caller's, that the pair reads as a
+ * pair, and that each series speaks with its own sign convention.
+ */
+describe('groupedRowChart', () => {
+  const CAPITAL = {
+    label: 'Capital',
+    color: () => 'var(--series-1)',
+    format: (value: number) => `${value.toFixed(2)} EUR`,
+  };
+  const RESULT = {
+    label: 'Result',
+    color: (value: number) => (value < 0 ? 'var(--pole-negative)' : 'var(--pole-positive)'),
+    format: (value: number) => `${value >= 0 ? '+' : '−'}${Math.abs(value).toFixed(2)} EUR`,
+  };
+
+  function render(rows: GroupedRow[], domain: [number, number]): SVGSVGElement {
+    const root = groupedRowChart(
+      {
+        rows,
+        series: [CAPITAL, RESULT],
+        domain,
+        formatTick: (value) => value.toFixed(0),
+        title: 'Capital and result',
+      },
+      host(),
+    );
+    if (!root) throw new Error('no chart');
+    return root;
+  }
+
+  /** The drawn bars, in document order: one group after another. */
+  function bars(
+    root: SVGSVGElement,
+  ): { label: string; x: number; y: number; width: number; height: number }[] {
+    return [...root.querySelectorAll('rect.chart__bar')].map((node) => ({
+      label: node.getAttribute('aria-label') ?? '',
+      x: Number(node.getAttribute('x')),
+      y: Number(node.getAttribute('y')),
+      width: Number(node.getAttribute('width')),
+      height: Number(node.getAttribute('height')),
+    }));
+  }
+
+  it('draws nothing without rows, and nothing without series', () => {
+    const base = { domain: [0, 10] as [number, number], formatTick: String, title: 'T' };
+    expect(groupedRowChart({ ...base, rows: [], series: [CAPITAL] }, host())).toBeNull();
+    expect(
+      groupedRowChart({ ...base, rows: [{ label: 'Jan', values: [1] }], series: [] }, host()),
+    ).toBeNull();
+  });
+
+  /**
+   * The reason `domain` is an argument at all.
+   *
+   * The chart shows one year of a longer history, and the caller measures the
+   * metre over every year. Measured from the visible rows instead, the same
+   * value would be drawn at two different lengths depending on which year is
+   * open, and the two years could no longer be compared by eye — which is the
+   * only comparison a bar chart makes for free.
+   */
+  it('scales to the domain it is given, not to the rows it is drawing', () => {
+    const row = [{ label: 'Jan', values: [50, 0] }];
+    const near = bars(render(row, [0, 100]))[0]!.width;
+    const far = bars(render(row, [0, 200]))[0]!.width;
+    expect(far).toBeGreaterThan(0);
+    expect(near / far).toBeCloseTo(2, 2);
+  });
+
+  /**
+   * Blue and green sit two pixels apart here for the first time in the report.
+   * The order being fixed is what lets a reader who cannot separate the two
+   * fills still say which bar is which, so it is a contract and not a detail.
+   */
+  it('keeps the declared series order inside every group', () => {
+    const drawn = bars(render(
+      [
+        { label: 'Jan', values: [100, 10] },
+        { label: 'Feb', values: [80, -5] },
+      ],
+      [-20, 100],
+    ));
+    expect(drawn.map((bar) => bar.label)).toEqual([
+      'Jan, Capital: 100.00 EUR',
+      'Jan, Result: +10.00 EUR',
+      'Feb, Capital: 80.00 EUR',
+      'Feb, Result: −5.00 EUR',
+    ]);
+    expect(drawn[0]!.y).toBeLessThan(drawn[1]!.y);
+    expect(drawn[2]!.y).toBeLessThan(drawn[3]!.y);
+  });
+
+  /** A pair that is no tighter than the gap around it is not read as a pair. */
+  it('leaves less room inside a pair than between two months', () => {
+    const drawn = bars(render(
+      [
+        { label: 'Jan', values: [100, 10] },
+        { label: 'Feb', values: [80, 5] },
+      ],
+      [0, 100],
+    ));
+    const gap = (above: number, below: number): number =>
+      drawn[below]!.y - (drawn[above]!.y + drawn[above]!.height);
+    expect(gap(0, 1)).toBeGreaterThan(0);
+    expect(gap(1, 2)).toBeGreaterThan(gap(0, 1));
+  });
+
+  it('draws a loss on the other side of zero', () => {
+    const drawn = bars(render([{ label: 'Jan', values: [100, -20] }], [-20, 100]));
+    const capital = drawn[0]!;
+    const loss = drawn[1]!;
+    // The capital starts at the baseline and runs right; the loss ends there and
+    // runs left. Drawn rightwards from zero it would lie on top of the capital.
+    expect(loss.x).toBeLessThan(capital.x);
+    expect(loss.x + loss.width).toBeCloseTo(capital.x, 5);
+  });
+
+  /**
+   * One hover reads out the whole month, including a figure that is not drawn:
+   * the return ties the two bars together, and it has no euro axis to live on.
+   */
+  it('reads out both bars and the undrawn figures on one hover', () => {
+    const container = host();
+    const root = groupedRowChart(
+      {
+        rows: [
+          {
+            label: 'Jan',
+            values: [100, -20],
+            readout: [{ label: 'Return', value: '−20.00%' }],
+          },
+        ],
+        series: [CAPITAL, RESULT],
+        domain: [-20, 100],
+        formatTick: (value) => value.toFixed(0),
+        title: 'Capital and result',
+      },
+      container,
+    )!;
+    container.append(root);
+
+    root.querySelector('rect.chart__bar')!.dispatchEvent(new Event('pointerenter'));
+    const tooltip = container.querySelector('.tooltip')!;
+    expect(tooltip.querySelector('.tooltip__title')!.textContent).toBe('Jan');
+    expect([...tooltip.querySelectorAll('li')].map((row) => row.textContent)).toEqual([
+      'Capital100.00 EUR',
+      'Result−20.00 EUR',
+      'Return−20.00%',
+    ]);
+    // The derived figure has no mark on the plot, so it gets no swatch either.
+    expect(tooltip.querySelectorAll('.tooltip__swatch')).toHaveLength(2);
   });
 });

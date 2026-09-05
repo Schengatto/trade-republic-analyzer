@@ -187,17 +187,18 @@ export const en: Messages = {
   'monthly.column.transactions': 'BUY and SELL rows',
 
   'capital.heading': 'Capital and return',
-  'capitalInvested.heading': 'Average capital invested',
-  'capitalInvested.description':
-    'The cost of the open positions, measured at the close of each day and averaged over the days of the month, weekends included. The first and last months are partial: the days column says how many days the average was taken over.',
+  'capital.figure': 'Capital and result, month by month',
+  'capital.description':
+    'Two bars for each month: the cost of the open positions, measured at the close of each day and averaged over the days of the month, weekends included, and beside it the realized trading plus dividends for the same month. The chart shows one year at a time; the table lists them all, with the days each average was taken over — the first and last months are partial.',
+  'capital.year': 'Year',
+  'capital.showing': 'The chart shows {year}.',
+  'capital.legend.gain': 'Month in profit',
+  'capital.legend.loss': 'Month at a loss',
   'capitalInvested.series': 'Average capital invested',
+  'capitalProfit.series': 'Result for the month',
   'capital.column.month': 'Month',
   'capital.column.capital': 'Average capital',
   'capital.column.days': 'Days',
-  'capitalProfit.heading': 'What that capital produced',
-  'capitalProfit.description':
-    'Realized trading and dividends for the same month, on the same columns as the chart above: read a month vertically — how much capital was at risk, and how much it returned.',
-  'capitalProfit.series': 'Profit for the month',
   'capital.column.profit': 'Profit',
   'capital.column.return': 'Return',
   'capital.caution':

@@ -190,17 +190,18 @@ export const de: Messages = {
   'monthly.column.transactions': 'BUY- und SELL-Zeilen',
 
   'capital.heading': 'Kapital und Rendite',
-  'capitalInvested.heading': 'Durchschnittlich investiertes Kapital',
-  'capitalInvested.description':
-    'Die Kosten der offenen Positionen, am Ende jedes Tages gemessen und über die Tage des Monats gemittelt, Wochenenden eingeschlossen. Der erste und der letzte Monat sind unvollständig: Die Spalte mit den Tagen nennt, über wie viele Tage gemittelt wurde.',
+  'capital.figure': 'Kapital und Ergebnis, Monat für Monat',
+  'capital.description':
+    'Zwei Balken je Monat: die Kosten der offenen Positionen, am Ende jedes Tages gemessen und über die Tage des Monats gemittelt, Wochenenden eingeschlossen, und daneben die realisierten Handelsergebnisse samt Dividenden desselben Monats. Das Diagramm zeigt ein Jahr auf einmal; die Tabelle führt alle auf, mit den Tagen, über die jeweils gemittelt wurde — der erste und der letzte Monat sind unvollständig.',
+  'capital.year': 'Jahr',
+  'capital.showing': 'Das Diagramm zeigt {year}.',
+  'capital.legend.gain': 'Monat im Gewinn',
+  'capital.legend.loss': 'Monat im Verlust',
   'capitalInvested.series': 'Durchschnittlich investiertes Kapital',
+  'capitalProfit.series': 'Ergebnis des Monats',
   'capital.column.month': 'Monat',
   'capital.column.capital': 'Durchschn. Kapital',
   'capital.column.days': 'Tage',
-  'capitalProfit.heading': 'Was dieses Kapital erwirtschaftet hat',
-  'capitalProfit.description':
-    'Realisierte Handelsergebnisse und Dividenden desselben Monats, auf denselben Spalten wie das Diagramm darüber: Ein Monat wird senkrecht gelesen — wie viel Kapital im Risiko stand und wie viel es gebracht hat.',
-  'capitalProfit.series': 'Gewinn des Monats',
   'capital.column.profit': 'Gewinn',
   'capital.column.return': 'Rendite',
   'capital.caution':

@@ -189,17 +189,18 @@ export const pt: Messages = {
   'monthly.column.transactions': 'Linhas BUY e SELL',
 
   'capital.heading': 'Capital e rendibilidade',
-  'capitalInvested.heading': 'Capital médio investido',
-  'capitalInvested.description':
-    'O custo das posições abertas, medido no fecho de cada dia e calculado em média sobre os dias do mês, fins de semana incluídos. O primeiro e o último mês são parciais: a coluna dos dias indica sobre quantos dias a média foi tirada.',
+  'capital.figure': 'Capital e resultado, mês a mês',
+  'capital.description':
+    'Duas barras para cada mês: o custo das posições abertas, medido no fecho de cada dia e calculado em média sobre os dias do mês, fins de semana incluídos, e ao lado a negociação realizada mais os dividendos do mesmo mês. O gráfico mostra um ano de cada vez; a tabela guarda-os todos, com os dias sobre os quais cada média foi tirada — o primeiro e o último mês são parciais.',
+  'capital.year': 'Ano',
+  'capital.showing': 'O gráfico mostra {year}.',
+  'capital.legend.gain': 'Mês com lucro',
+  'capital.legend.loss': 'Mês com prejuízo',
   'capitalInvested.series': 'Capital médio investido',
+  'capitalProfit.series': 'Resultado do mês',
   'capital.column.month': 'Mês',
   'capital.column.capital': 'Capital médio',
   'capital.column.days': 'Dias',
-  'capitalProfit.heading': 'O que esse capital produziu',
-  'capitalProfit.description':
-    'Negociação realizada e dividendos do mesmo mês, nas mesmas colunas do gráfico acima: um mês lê-se na vertical, quanto capital estava em risco e quanto rendeu.',
-  'capitalProfit.series': 'Lucro do mês',
   'capital.column.profit': 'Lucro',
   'capital.column.return': 'Rendibilidade',
   'capital.caution':

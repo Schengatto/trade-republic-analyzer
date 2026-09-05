@@ -190,17 +190,18 @@ export const nl: Messages = {
   'monthly.column.transactions': 'BUY- en SELL-regels',
 
   'capital.heading': 'Kapitaal en rendement',
-  'capitalInvested.heading': 'Gemiddeld geïnvesteerd kapitaal',
-  'capitalInvested.description':
-    'De kostprijs van de open posities, gemeten aan het eind van elke dag en gemiddeld over de dagen van de maand, weekends inbegrepen. De eerste en de laatste maand zijn gedeeltelijk: de kolom met de dagen zegt over hoeveel dagen het gemiddelde is genomen.',
+  'capital.figure': 'Kapitaal en resultaat, maand voor maand',
+  'capital.description':
+    'Twee balken per maand: de kostprijs van de open posities, gemeten aan het eind van elke dag en gemiddeld over de dagen van de maand, weekends inbegrepen, en daarnaast het gerealiseerde handelsresultaat plus de dividenden van dezelfde maand. De grafiek toont één jaar tegelijk; de tabel houdt ze alle, met de dagen waarover elk gemiddelde is genomen — de eerste en de laatste maand zijn gedeeltelijk.',
+  'capital.year': 'Jaar',
+  'capital.showing': 'De grafiek toont {year}.',
+  'capital.legend.gain': 'Maand met winst',
+  'capital.legend.loss': 'Maand met verlies',
   'capitalInvested.series': 'Gemiddeld geïnvesteerd kapitaal',
+  'capitalProfit.series': 'Resultaat van de maand',
   'capital.column.month': 'Maand',
   'capital.column.capital': 'Gemiddeld kapitaal',
   'capital.column.days': 'Dagen',
-  'capitalProfit.heading': 'Wat dat kapitaal heeft opgeleverd',
-  'capitalProfit.description':
-    'Gerealiseerd handelsresultaat en dividenden van dezelfde maand, op dezelfde kolommen als de grafiek hierboven: een maand lees je verticaal — hoeveel kapitaal er in het spel stond en hoeveel het opleverde.',
-  'capitalProfit.series': 'Winst van de maand',
   'capital.column.profit': 'Winst',
   'capital.column.return': 'Rendement',
   'capital.caution':

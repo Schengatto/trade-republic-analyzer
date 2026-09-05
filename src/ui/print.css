@@ -143,10 +143,13 @@
   }
 
   /* Un controllo su carta è un campo che nessuno può compilare. Quello che il
-     lettore ha scelto lo dice `.performance__range`, che resta stampata: il
-     gauge e le tre cifre parlano di un intervallo, e la pagina lo deve
-     nominare invece di lasciarlo indovinare. */
-  #performance .figure__controls {
+     lettore ha scelto lo dicono `.performance__range` e `.capital__year`, che
+     restano stampate: il gauge, le tre cifre e le barre del capitale parlano di
+     un periodo, e la pagina lo deve nominare invece di lasciarlo indovinare.
+     La tabella del capitale invece non segue il selettore — elenca tutti gli
+     anni — quindi la stampa non perde nessun mese. */
+  #performance .figure__controls,
+  #capital .figure__controls {
     display: none;
   }
 

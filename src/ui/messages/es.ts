@@ -190,17 +190,18 @@ export const es: Messages = {
   'monthly.column.transactions': 'Filas BUY y SELL',
 
   'capital.heading': 'Capital y rentabilidad',
-  'capitalInvested.heading': 'Capital medio invertido',
-  'capitalInvested.description':
-    'El coste de las posiciones abiertas, medido al cierre de cada día y promediado sobre los días del mes, fines de semana incluidos. El primer y el último mes son parciales: la columna de los días indica sobre cuántos días se ha tomado la media.',
+  'capital.figure': 'Capital y resultado, mes a mes',
+  'capital.description':
+    'Dos barras por cada mes: el coste de las posiciones abiertas, medido al cierre de cada día y promediado sobre los días del mes, fines de semana incluidos, y al lado la operativa realizada más los dividendos del mismo mes. El gráfico muestra un año cada vez; la tabla los recoge todos, con los días sobre los que se ha tomado cada media — el primer y el último mes son parciales.',
+  'capital.year': 'Año',
+  'capital.showing': 'El gráfico muestra {year}.',
+  'capital.legend.gain': 'Mes en beneficio',
+  'capital.legend.loss': 'Mes en pérdida',
   'capitalInvested.series': 'Capital medio invertido',
+  'capitalProfit.series': 'Resultado del mes',
   'capital.column.month': 'Mes',
   'capital.column.capital': 'Capital medio',
   'capital.column.days': 'Días',
-  'capitalProfit.heading': 'Lo que ha producido ese capital',
-  'capitalProfit.description':
-    'Operativa realizada y dividendos del mismo mes, sobre las mismas columnas que el gráfico de arriba: un mes se lee en vertical, cuánto capital estaba en riesgo y cuánto ha rendido.',
-  'capitalProfit.series': 'Beneficio del mes',
   'capital.column.profit': 'Beneficio',
   'capital.column.return': 'Rentabilidad',
   'capital.caution':

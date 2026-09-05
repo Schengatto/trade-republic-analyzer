@@ -190,17 +190,18 @@ export const fr: Messages = {
   'monthly.column.transactions': 'Lignes BUY et SELL',
 
   'capital.heading': 'Capital et rendement',
-  'capitalInvested.heading': 'Capital moyen investi',
-  'capitalInvested.description':
-    'Le coût des positions ouvertes, mesuré à la clôture de chaque journée et moyenné sur les jours du mois, week-ends compris. Le premier et le dernier mois sont partiels : la colonne des jours indique sur combien de jours la moyenne a été prise.',
+  'capital.figure': 'Capital et résultat, mois par mois',
+  'capital.description':
+    'Deux barres pour chaque mois : le coût des positions ouvertes, mesuré à la clôture de chaque journée et moyenné sur les jours du mois, week-ends compris, et à côté le résultat de négociation réalisé plus les dividendes du même mois. Le graphique montre une année à la fois ; le tableau les garde toutes, avec les jours sur lesquels chaque moyenne a été prise — le premier et le dernier mois sont partiels.',
+  'capital.year': 'Année',
+  'capital.showing': 'Le graphique montre {year}.',
+  'capital.legend.gain': 'Mois en gain',
+  'capital.legend.loss': 'Mois en perte',
   'capitalInvested.series': 'Capital moyen investi',
+  'capitalProfit.series': 'Résultat du mois',
   'capital.column.month': 'Mois',
   'capital.column.capital': 'Capital moyen',
   'capital.column.days': 'Jours',
-  'capitalProfit.heading': 'Ce que ce capital a produit',
-  'capitalProfit.description':
-    'Résultat de négociation réalisé et dividendes du même mois, sur les mêmes colonnes que le graphique ci-dessus : un mois se lit à la verticale, combien de capital était exposé et combien il a rapporté.',
-  'capitalProfit.series': 'Résultat du mois',
   'capital.column.profit': 'Résultat',
   'capital.column.return': 'Rendement',
   'capital.caution':

@@ -1,15 +1,15 @@
 /**
  * Bar charts, vertical and horizontal.
  *
- * Both always include the zero baseline in the domain: a bar is read by
+ * All of them always include the zero baseline in the domain: a bar is read by
  * comparing lengths, so an axis starting at the smallest value would exaggerate
  * every difference.
  */
 
 import { svg } from '../dom';
-import { type Band, bands, extent, includeZero, linearScale, niceTicks } from './geometry';
+import { type Band, type Domain, bands, extent, includeZero, linearScale, niceTicks } from './geometry';
 import { AXIS, GRID, INK_MUTED, POLE_NEUTRAL } from './palette';
-import { createTooltip } from './tooltip';
+import { createTooltip, type TooltipRow } from './tooltip';
 
 export interface BarDatum {
   /** Axis label. */
@@ -436,6 +436,172 @@ export function horizontalBarChart(
         [spec.formatValue(datum.value)],
       ),
     );
+  });
+
+  return root;
+}
+
+export interface RowSeries {
+  label: string;
+  /**
+   * The colour of one value. A quantity without polarity answers with the same
+   * colour every time; a signed one answers with the pole of its sign.
+   */
+  color: (value: number) => string;
+  /**
+   * Per series, not per chart: two series can share a unit and still not share
+   * a presentation — a result is written with its sign, a size never is.
+   */
+  format: (value: number) => string;
+}
+
+export interface GroupedRow {
+  label: string;
+  /** One value per series, in the order the series are declared. */
+  values: number[];
+  /**
+   * Extra readout lines for this row: a figure derived from the bars rather
+   * than drawn as one. They carry no swatch, because nothing on the plot
+   * corresponds to them.
+   */
+  readout?: TooltipRow[];
+}
+
+export interface GroupedRowChartSpec {
+  rows: GroupedRow[];
+  series: RowSeries[];
+  /**
+   * The value domain, fixed by the caller instead of measured from `rows`.
+   *
+   * This chart shows one slice of a longer history at a time. A domain measured
+   * from the visible slice would rescale under the reader every time the slice
+   * changes, and two slices could then only be compared by reading the ticks —
+   * which is exactly the comparison the bars are supposed to make for free.
+   */
+  domain: Domain;
+  formatTick: (value: number) => string;
+  /** Names the whole chart for a reader who arrives without the heading. */
+  title: string;
+}
+
+const G_ROW = 34;
+const G_MARGIN = { top: 16, right: 32, bottom: 34, left: 108 };
+/** Between the bars of one group. */
+const G_PAIR_GAP = 2;
+/** Between groups: it has to beat the pair gap, or the pairing is lost. */
+const G_GROUP_GAP = 10;
+
+/**
+ * Two or more quantities per category, laid out as adjacent horizontal bars.
+ *
+ * Grouped rather than stacked because the values do not add up to anything: one
+ * is capital, the other is what that capital produced, and a stack would draw a
+ * total that means nothing. Horizontal rather than vertical because the series
+ * differ by orders of magnitude — on a shared euro axis the small one is a few
+ * pixels tall, whereas a short bar lying next to its label is still a length.
+ *
+ * The series order is fixed for every group, so a bar is identified by its
+ * position and not only by its colour.
+ */
+export function groupedRowChart(
+  spec: GroupedRowChartSpec,
+  container: HTMLElement,
+): SVGSVGElement | null {
+  const { rows, series } = spec;
+  if (rows.length === 0 || series.length === 0) return null;
+
+  const plotHeight = G_ROW * rows.length;
+  const height = G_MARGIN.top + G_MARGIN.bottom + plotHeight;
+  const domain = includeZero(spec.domain);
+  const x = linearScale(domain, [G_MARGIN.left, WIDTH - G_MARGIN.right]);
+  const ticks = niceTicks(domain[0], domain[1], 4);
+  const groups = bands(rows.length, [G_MARGIN.top, G_MARGIN.top + plotHeight], G_GROUP_GAP);
+  const baseline = x(0);
+
+  const root = svg('svg', {
+    viewBox: `0 0 ${WIDTH} ${height}`,
+    class: 'chart chart--rows',
+    preserveAspectRatio: 'xMidYMid meet',
+    role: 'img',
+    'aria-label': spec.title,
+  });
+
+  for (const tick of ticks) {
+    const at = x(tick);
+    root.append(
+      svg('line', {
+        x1: at,
+        x2: at,
+        y1: G_MARGIN.top,
+        y2: G_MARGIN.top + plotHeight,
+        stroke: tick === 0 ? AXIS : GRID,
+        'stroke-width': 1,
+      }),
+      svg(
+        'text',
+        { x: at, y: height - 12, 'text-anchor': 'middle', class: 'chart__tick', fill: INK_MUTED },
+        [spec.formatTick(tick)],
+      ),
+    );
+  }
+
+  const tooltip = createTooltip(container);
+
+  rows.forEach((row, index) => {
+    const group = groups[index]!;
+    root.append(
+      svg(
+        'text',
+        {
+          x: G_MARGIN.left - 12,
+          y: group.center + 4,
+          'text-anchor': 'end',
+          class: 'chart__tick',
+          fill: INK_MUTED,
+        },
+        [row.label],
+      ),
+    );
+
+    // Hovering any bar of the group reads out the whole group: the point of the
+    // pairing is the comparison, and one figure at a time would not make it.
+    const readout = (): TooltipRow[] => [
+      ...series.map((entry, slot) => {
+        const value = row.values[slot] ?? 0;
+        return { label: entry.label, value: entry.format(value), color: entry.color(value) };
+      }),
+      ...(row.readout ?? []),
+    ];
+
+    const slots = bands(series.length, [group.start, group.start + group.width], G_PAIR_GAP);
+    series.forEach((entry, slot) => {
+      const value = row.values[slot] ?? 0;
+      const band = slots[slot]!;
+      const left = Math.min(baseline, x(value));
+      const width = Math.max(1, Math.abs(x(value) - baseline));
+
+      const bar = svg('rect', {
+        x: left,
+        y: band.start,
+        width,
+        height: band.width,
+        fill: value === 0 ? POLE_NEUTRAL : entry.color(value),
+        rx: Math.min(3, width / 2, band.width / 2),
+        class: 'chart__bar',
+        tabindex: 0,
+        role: 'listitem',
+        'aria-label': `${row.label}, ${entry.label}: ${entry.format(value)}`,
+      });
+
+      const reveal = (): void =>
+        tooltip.show((left + width) / WIDTH, group.start / height, row.label, readout());
+
+      bar.addEventListener('pointerenter', reveal);
+      bar.addEventListener('focus', reveal);
+      bar.addEventListener('pointerleave', () => tooltip.hide());
+      bar.addEventListener('blur', () => tooltip.hide());
+      root.append(bar);
+    });
   });
 
   return root;
