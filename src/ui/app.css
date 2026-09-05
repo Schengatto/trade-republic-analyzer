@@ -801,9 +801,24 @@ summary:focus-visible,
   font-weight: 600;
 }
 
+/* Label then figure. `1fr auto` stretched the label track to the whole card and
+   pinned the number to its right edge: at 1440px that left up to 904px of empty
+   paper between «Fees» and its own amount, and the pair stopped reading as a
+   pair. Sizing the label track to its content instead keeps the two together —
+   about 354px in Italian, set by «Costo di carico delle posizioni aperte» — and
+   the figures still share one right-aligned column, so they stay decimal-
+   aligned with each other. `minmax(0, …)` because at 375px the track must still
+   be allowed to shrink below that content width and wrap, as it already did.
+
+   `justify-content: start` is what actually moves the number, and leaving it
+   out looks like a working fix: sizing the tracks is not enough, because a
+   grid hands its leftover space to an `auto` track, which stretched to 897px
+   and held the right-aligned figure exactly where it already was. Measure the
+   figure's own ink, not its cell — the cell edge does move. */
 .amounts {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, max-content) auto;
+  justify-content: start;
   gap: 6px 24px;
   margin: 0;
   font-size: 0.925rem;
@@ -842,11 +857,18 @@ summary:focus-visible,
   font-size: 1.1rem;
 }
 
+/* These bullets are the same 0.9rem prose as `.note`, so they take the same
+   measure. Without it they were the one paragraph in the report still running
+   the full card — 940px, about 127 characters a line, against the 714px every
+   other paragraph wraps at since the measure moved. The cap sits on the list,
+   so it covers the 20px marker indent and the text lands on the same right
+   edge as the prose above it. */
 .limits {
   margin: 0;
   padding-left: 20px;
   color: var(--ink-secondary);
   font-size: 0.9rem;
+  max-width: 92ch;
   display: flex;
   flex-direction: column;
   gap: 6px;
@@ -877,6 +899,15 @@ summary:focus-visible,
   white-space: nowrap;
 }
 
+/* A column label is prose and may wrap; the figure beneath it may not, because
+   a number split across two lines stops being one. Holding both nowrap let the
+   *labels* set the table's width, and an auto-layout table cannot shrink below
+   its longest unbreakable cell — so the Italian headings, which are longer than
+   the English ones, pushed two tables past the card at a full 1440px desktop:
+   «Media per giorno di calendario» is 221px of ink over figures a third that
+   wide, and #performance asked for 1045px inside 990px (#securities 997px).
+   English fit, so the scrollbar appeared in one language only. print.css:181
+   already carries this same split for the same reason on paper. */
 .data-table th {
   position: sticky;
   top: 0;
@@ -885,6 +916,7 @@ summary:focus-visible,
   text-transform: uppercase;
   letter-spacing: 0.04em;
   color: var(--ink-muted);
+  white-space: normal;
 }
 
 .data-table td.is-numeric,
