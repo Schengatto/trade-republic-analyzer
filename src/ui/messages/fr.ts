@@ -64,7 +64,8 @@ export const fr: Messages = {
   'summary.totalCharges.hint': 'Frais et impôts retenus.',
   'summary.netCapital': 'Capital net versé',
   'summary.netCapital.hint': 'Versements moins retraits.',
-  'summary.returnPercent': 'Rendement de {value} sur le capital versé',
+  'summary.return': 'Rendement du capital',
+  'summary.return.hint': 'Période entière, du {from} au {to}. Non annualisé.',
   'summary.returnUnavailable': 'Rendement indisponible : le capital net versé est nul.',
   'summary.operationsRead': '{count} opérations lues',
   'summary.period': 'Période du {from} au {to}',
@@ -76,11 +77,12 @@ export const fr: Messages = {
   'trend.series.trading': 'Profit de négociation',
   'trend.column.date': 'Date',
   'trend.column.dayProfit': 'Variation du jour',
+  'trend.drawdown': 'Plus forte baisse',
+  'trend.drawdown.hint': 'Depuis le sommet précédent, point bas le {date}.',
+  'trend.worstDay': 'Pire journée',
+  'trend.worstDay.hint': 'Perte enregistrée le {date}.',
 
   'composition.heading': 'Composition du résultat',
-  'composition.securitiesInProfit': 'Titres en gain',
-  'composition.securitiesInLoss': 'Titres en perte',
-  'composition.securitiesBreakEven': 'Titres à l’équilibre',
   'composition.grossProfit': 'Profit brut',
   'composition.income': 'Revenus par type',
   'composition.incomeNote':
@@ -211,7 +213,7 @@ export const fr: Messages = {
 
   'winRate.heading': 'Part des positions en gain',
   'winRate.caution':
-    'À lire avec le gain moyen et la perte moyenne : un taux élevé assorti de pertes plus grandes que les gains reste un résultat négatif.',
+    'On compte ici des titres, pas des ventes : les pourcentages plus bas sont mesurés sur la vente, et un dénominateur différent donne un autre nombre. À lire avec le gain moyen et la perte moyenne : un taux élevé assorti de pertes plus grandes que les gains reste un résultat négatif.',
   'winRate.closed': 'Positions clôturées',
   'winRate.wins': 'En gain',
   'winRate.losses': 'En perte',
@@ -270,8 +272,6 @@ export const fr: Messages = {
   'execution.heading': 'Qualité de la négociation',
   'execution.caution':
     'Une vente correspond à un symbole sur une journée : les lots clôturés ensemble ne comptent qu’une fois. On ne mesure ici que le résultat de négociation — les dividendes, les intérêts et les charges n’entrent pas en compte.',
-  'execution.sales': 'Ventes',
-  'execution.winShare': 'En gain',
   'execution.profitFactor': 'Facteur de profit',
   'execution.profitFactorHint':
     'Aucune vente ne s’est clôturée en perte, le rapport n’a donc pas de valeur.',
@@ -290,6 +290,8 @@ export const fr: Messages = {
   'execution.bucket.M1_TO_M6': 'De 1 à 6 mois',
   'execution.bucket.M6_TO_M12': 'De 6 à 12 mois',
   'execution.bucket.OVER_1Y': 'Plus de 1 an',
+  'execution.profitConcentration':
+    'Les trois meilleures ventes représentent {percent} du gain total.',
   'execution.concentration':
     'Les trois pires ventes représentent {percent} de la perte totale.',
 

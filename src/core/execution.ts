@@ -99,6 +99,7 @@ export interface ExecutionQuality {
   meanDaysWinners: number | null;
   meanDaysLosers: number | null;
   lossConcentration: Decimal | null;
+  profitConcentration: Decimal | null;
 }
 
 export function executionQuality(group: readonly Sale[]): ExecutionQuality | null {
@@ -113,6 +114,11 @@ export function executionQuality(group: readonly Sale[]): ExecutionQuality | nul
 
   const worst = [...losers]
     .sort((a, b) => a.profit.comparedTo(b.profit))
+    .slice(0, CONCENTRATION_COUNT)
+    .reduce((sum, sale) => sum.plus(sale.profit), ZERO);
+
+  const best = [...winners]
+    .sort((a, b) => b.profit.comparedTo(a.profit))
     .slice(0, CONCENTRATION_COUNT)
     .reduce((sum, sale) => sum.plus(sale.profit), ZERO);
 
@@ -135,6 +141,12 @@ export function executionQuality(group: readonly Sale[]): ExecutionQuality | nul
       losers.length <= CONCENTRATION_COUNT || totalLost.isZero()
         ? null
         : worst.div(totalLost).times(100),
+    // The same question asked of the other side: a year carried by three sales
+    // is a different account from one that earned it across thirty.
+    profitConcentration:
+      winners.length <= CONCENTRATION_COUNT || totalWon.isZero()
+        ? null
+        : best.div(totalWon).times(100),
   };
 }
 

@@ -65,13 +65,13 @@ export function windowsSection(context: ReportContext): HTMLElement {
           t('profitPart.interest'),
           t('profitPart.otherIncome'),
           t('profitPart.charges'),
-          t('windows.column.profit'),
         ],
         numericFrom: 1,
+        // No total column: it would be the same `profitCell` the table above
+        // already prints, and it is the algebraic sum of the five beside it.
         rows: summaries.map((summary) => [
           t(`window.${summary.key}` as MessageKey),
           ...partCells(context, summary),
-          profitCell(context, summary),
         ]),
       }),
     ]),

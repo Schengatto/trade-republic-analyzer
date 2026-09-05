@@ -64,7 +64,8 @@ export const nl: Messages = {
   'summary.totalCharges.hint': 'Kosten en ingehouden belasting.',
   'summary.netCapital': 'Netto gestort kapitaal',
   'summary.netCapital.hint': 'Stortingen minus opnames.',
-  'summary.returnPercent': 'Rendement van {value} op het gestorte kapitaal',
+  'summary.return': 'Rendement op kapitaal',
+  'summary.return.hint': 'Hele periode, {from} tot {to}. Niet op jaarbasis.',
   'summary.returnUnavailable':
     'Rendement niet beschikbaar: het netto gestorte kapitaal is nul.',
   'summary.operationsRead': '{count} transacties gelezen',
@@ -76,11 +77,12 @@ export const nl: Messages = {
   'trend.series.trading': 'Handelswinst',
   'trend.column.date': 'Datum',
   'trend.column.dayProfit': 'Verandering op de dag',
+  'trend.drawdown': 'Grootste terugval',
+  'trend.drawdown.hint': 'Vanaf de vorige top, dieptepunt op {date}.',
+  'trend.worstDay': 'Slechtste dag',
+  'trend.worstDay.hint': 'Verlies geleden op {date}.',
 
   'composition.heading': 'Hoe het resultaat is opgebouwd',
-  'composition.securitiesInProfit': 'Effecten met winst',
-  'composition.securitiesInLoss': 'Effecten met verlies',
-  'composition.securitiesBreakEven': 'Effecten op break-even',
   'composition.grossProfit': 'Brutowinst',
   'composition.income': 'Inkomsten per type',
   'composition.incomeNote':
@@ -211,7 +213,7 @@ export const nl: Messages = {
 
   'winRate.heading': 'Aandeel posities met winst',
   'winRate.caution':
-    'Lees dit samen met de gemiddelde winst en het gemiddelde verlies: een hoog percentage met verliezen die groter zijn dan de winsten blijft een negatief resultaat.',
+    'Hier worden effecten geteld, geen afzonderlijke verkopen: de percentages verderop meten de verkoop, en een andere noemer geeft een ander getal. Lees dit samen met de gemiddelde winst en het gemiddelde verlies: een hoog percentage met verliezen die groter zijn dan de winsten blijft een negatief resultaat.',
   'winRate.closed': 'Gesloten posities',
   'winRate.wins': 'Met winst',
   'winRate.losses': 'Met verlies',
@@ -270,8 +272,6 @@ export const nl: Messages = {
   'execution.heading': 'Kwaliteit van de handel',
   'execution.caution':
     'Een verkoop is één symbool op één dag: lots die samen worden gesloten, tellen één keer. Hier wordt alleen het handelsresultaat gemeten — dividend, rente en lasten blijven erbuiten.',
-  'execution.sales': 'Verkopen',
-  'execution.winShare': 'Met winst',
   'execution.profitFactor': 'Winstfactor',
   'execution.profitFactorHint':
     'Geen enkele verkoop is met verlies gesloten, dus de verhouding heeft geen waarde.',
@@ -290,6 +290,8 @@ export const nl: Messages = {
   'execution.bucket.M1_TO_M6': '1 tot 6 maanden',
   'execution.bucket.M6_TO_M12': '6 tot 12 maanden',
   'execution.bucket.OVER_1Y': 'Meer dan 1 jaar',
+  'execution.profitConcentration':
+    'De drie beste verkopen zijn goed voor {percent} van de totale winst.',
   'execution.concentration':
     'De drie slechtste verkopen zijn goed voor {percent} van het totale verlies.',
 

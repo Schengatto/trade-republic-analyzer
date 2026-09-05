@@ -9,6 +9,7 @@ import {
   monthlyMargins,
   profitByAssetClass,
   securityDetails,
+  setback,
   timeSeries,
   topAndFlop,
   returnOnCapital,
@@ -67,6 +68,97 @@ describe('timeSeries', () => {
     expect(series).toHaveLength(1);
     expect(series[0]!.net.toFixed(2)).toBe('-3.29');
     expect(series[0]!.trading.toFixed(2)).toBe('0.00');
+  });
+});
+
+describe('setback', () => {
+  /** One 100-euro lot per symbol, so a sale's proceeds are its profit plus 100. */
+  const account = (sold: [date: string, symbol: string, proceeds: string][]) =>
+    timeSeries(
+      calculate([
+        ...sold.map(([, symbol]) =>
+          op('2024-01-01', 'TRADING', 'BUY', { shares: '10', amount: '-100.00', symbol }),
+        ),
+        ...sold.map(([date, symbol, proceeds]) =>
+          op(date, 'TRADING', 'SELL', { shares: '-10', amount: proceeds, symbol }),
+        ),
+      ]),
+    );
+
+  it('has nothing to report about an empty series', () => {
+    expect(setback([])).toBeNull();
+  });
+
+  it('is null for a curve that only ever rose', () => {
+    // Not a fall of zero: «-0,00 €» under "largest fall" would send the reader
+    // looking for the day it happened on.
+    const points = account([
+      ['2024-02-01', 'AAA', '150.00'],
+      ['2024-03-01', 'BBB', '120.00'],
+    ]);
+
+    expect(points.map((p) => p.net.toFixed(2))).toEqual(['50.00', '70.00']);
+    expect(setback(points)).toBeNull();
+  });
+
+  it('measures the fall from the peak, not from zero', () => {
+    const points = account([
+      ['2024-02-01', 'AAA', '200.00'], // +100, net 100
+      ['2024-03-01', 'BBB', '40.00'], //  -60, net 40
+      ['2024-04-01', 'CCC', '130.00'], // +30, net 70
+    ]);
+    const fall = setback(points)!;
+
+    // 60, not the 0 the still-positive net would suggest.
+    expect(fall.drawdown.toFixed(2)).toBe('60.00');
+    expect(fall.troughDate).toBe('2024-03-01');
+  });
+
+  it('starts the peak at zero, so an account that only lost has still fallen', () => {
+    // The first point is already negative. Seeding the peak with it would make
+    // the curve monotonic from its own start and report no fall at all.
+    const points = account([['2024-02-01', 'AAA', '60.00']]);
+    const fall = setback(points)!;
+
+    expect(points[0]!.net.toFixed(2)).toBe('-40.00');
+    expect(fall.drawdown.toFixed(2)).toBe('40.00');
+    expect(fall.troughDate).toBe('2024-02-01');
+  });
+
+  it('keeps the deepest fall when a later dip starts from a higher peak', () => {
+    const points = account([
+      ['2024-02-01', 'AAA', '200.00'], // +100, net 100
+      ['2024-03-01', 'BBB', '40.00'], //  -60, net 40
+      ['2024-04-01', 'CCC', '200.00'], // +100, net 140
+      ['2024-05-01', 'DDD', '80.00'], //  -20, net 120
+    ]);
+    const fall = setback(points)!;
+
+    expect(fall.drawdown.toFixed(2)).toBe('60.00');
+    expect(fall.troughDate).toBe('2024-03-01');
+  });
+
+  it('reports the worst single day separately from the trough', () => {
+    // Two consecutive losing days: the trough is the second, the worst day the
+    // first. One field cannot answer both questions.
+    const points = account([
+      ['2024-02-01', 'AAA', '200.00'], // +100, net 100
+      ['2024-03-01', 'BBB', '50.00'], //  -50, net 50
+      ['2024-04-01', 'CCC', '70.00'], //  -30, net 20
+    ]);
+    const fall = setback(points)!;
+
+    expect(fall.drawdown.toFixed(2)).toBe('80.00');
+    expect(fall.troughDate).toBe('2024-04-01');
+    expect(fall.worstDay.toFixed(2)).toBe('50.00');
+    expect(fall.worstDayDate).toBe('2024-03-01');
+  });
+
+  it('states the worst day as a positive size, like the fall it belongs to', () => {
+    const fall = setback(account([['2024-02-01', 'AAA', '60.00']]))!;
+
+    expect(fall.worstDay.isNegative()).toBe(false);
+    expect(fall.worstDay.toFixed(2)).toBe('40.00');
   });
 });
 

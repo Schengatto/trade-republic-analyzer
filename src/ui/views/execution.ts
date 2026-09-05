@@ -59,12 +59,9 @@ export const executionSection: SectionView = ({ report, language, t }: ReportCon
 
   return section('execution', t('execution.heading'), [
     note(t('execution.caution')),
+    // The count of sales and the share in profit are not repeated here: the
+    // gauge in Performance is that same pair, said once.
     el('div', { class: 'tiles' }, [
-      statTile({ label: t('execution.sales'), value: formatInteger(language, quality.count) }),
-      statTile({
-        label: t('execution.winShare'),
-        value: formatPercent(language, quality.winPercent),
-      }),
       statTile({
         label: t('execution.profitFactor'),
         value: quality.profitFactor === null ? NOTHING : formatRatio(language, quality.profitFactor),
@@ -113,6 +110,15 @@ export const executionSection: SectionView = ({ report, language, t }: ReportCon
         }),
       }),
     ]),
+    // Winners first, in the order the outcome table above reads them. Each side
+    // is null until there are more than three of it, so one sentence can appear
+    // without the other.
+    quality.profitConcentration !== null &&
+      note(
+        t('execution.profitConcentration', {
+          percent: formatPercent(language, quality.profitConcentration),
+        }),
+      ),
     quality.lossConcentration !== null &&
       note(
         t('execution.concentration', {

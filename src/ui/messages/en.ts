@@ -63,7 +63,8 @@ export const en: Messages = {
   'summary.totalCharges.hint': 'Fees and taxes withheld.',
   'summary.netCapital': 'Net capital paid in',
   'summary.netCapital.hint': 'Deposits minus withdrawals.',
-  'summary.returnPercent': 'Return of {value} on capital paid in',
+  'summary.return': 'Return on capital',
+  'summary.return.hint': 'Whole period, {from} to {to}. Not annualised.',
   'summary.returnUnavailable': 'Return not available: net capital paid in is zero.',
   'summary.operationsRead': '{count} operations read',
   'summary.period': 'Period from {from} to {to}',
@@ -74,11 +75,12 @@ export const en: Messages = {
   'trend.series.trading': 'Trading profit',
   'trend.column.date': 'Date',
   'trend.column.dayProfit': 'Change on the day',
+  'trend.drawdown': 'Largest fall',
+  'trend.drawdown.hint': 'From the previous peak, bottoming out on {date}.',
+  'trend.worstDay': 'Worst day',
+  'trend.worstDay.hint': 'Lost on {date}.',
 
   'composition.heading': 'How the result is made up',
-  'composition.securitiesInProfit': 'Securities in profit',
-  'composition.securitiesInLoss': 'Securities at a loss',
-  'composition.securitiesBreakEven': 'Securities at break-even',
   'composition.grossProfit': 'Gross profit',
   'composition.income': 'Income by type',
   'composition.incomeNote': 'Already included in the gross profit above; this is just the breakdown.',
@@ -208,7 +210,7 @@ export const en: Messages = {
 
   'winRate.heading': 'Share of positions in profit',
   'winRate.caution':
-    'Read it together with the average win and average loss: a high rate with losses bigger than the wins is still a negative result.',
+    'This counts securities, not individual sales: the percentages further down are measured on the sale, and a different denominator gives a different number. Read it together with the average win and average loss: a high rate with losses bigger than the wins is still a negative result.',
   'winRate.closed': 'Closed positions',
   'winRate.wins': 'In profit',
   'winRate.losses': 'At a loss',
@@ -267,8 +269,6 @@ export const en: Messages = {
   'execution.heading': 'Trading quality',
   'execution.caution':
     'A sale is one symbol on one day: lots closed together are counted once. This measures the trading result alone — dividends, interest and charges are left out.',
-  'execution.sales': 'Sales',
-  'execution.winShare': 'In profit',
   'execution.profitFactor': 'Profit factor',
   'execution.profitFactorHint': 'No sale closed at a loss, so the ratio has no value.',
   'execution.meanProfit': 'Mean result',
@@ -286,6 +286,7 @@ export const en: Messages = {
   'execution.bucket.M1_TO_M6': '1 to 6 months',
   'execution.bucket.M6_TO_M12': '6 to 12 months',
   'execution.bucket.OVER_1Y': 'Over 1 year',
+  'execution.profitConcentration': 'The three best sales carry {percent} of the total gain.',
   'execution.concentration': 'The three worst sales carry {percent} of the total loss.',
 
   'chart.showTable': 'Show the data as a table',

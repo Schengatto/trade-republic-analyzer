@@ -204,6 +204,60 @@ describe('executionQuality', () => {
     expect(executionQuality(sales(report))?.lossConcentration?.toString()).toBe('90');
   });
 
+  it('says nothing about profit concentration until there are more than three winners', () => {
+    const quality = executionQuality(sales(mixedAccount()));
+
+    // Pinned so the null cannot pass because the account has no winners at all.
+    expect(quality?.wins).toBeGreaterThan(0);
+    expect(quality?.profitConcentration).toBeNull();
+  });
+
+  it('still says nothing when there are exactly three winners', () => {
+    const report = calculate([
+      ...['AAA', 'BBB', 'CCC'].map((symbol) =>
+        op('2024-01-01T09:00:00Z', 'TRADING', 'BUY', { shares: '1', amount: '-100', symbol }),
+      ),
+      op('2024-03-01T09:00:00Z', 'TRADING', 'SELL', { shares: '-1', amount: '200', symbol: 'AAA' }),
+      op('2024-03-02T09:00:00Z', 'TRADING', 'SELL', { shares: '-1', amount: '150', symbol: 'BBB' }),
+      op('2024-03-03T09:00:00Z', 'TRADING', 'SELL', { shares: '-1', amount: '130', symbol: 'CCC' }),
+    ]);
+    const quality = executionQuality(sales(report));
+
+    expect(quality?.wins).toBe(3);
+    expect(quality?.profitConcentration).toBeNull();
+  });
+
+  it('measures how much of the gain the three best sales carry', () => {
+    // +100, +50, +30, +20: the best three are 180 of 200 = 90%.
+    const report = calculate([
+      ...['AAA', 'BBB', 'CCC', 'DDD'].map((symbol) =>
+        op('2024-01-01T09:00:00Z', 'TRADING', 'BUY', { shares: '1', amount: '-100', symbol }),
+      ),
+      op('2024-03-01T09:00:00Z', 'TRADING', 'SELL', { shares: '-1', amount: '200', symbol: 'AAA' }),
+      op('2024-03-02T09:00:00Z', 'TRADING', 'SELL', { shares: '-1', amount: '150', symbol: 'BBB' }),
+      op('2024-03-03T09:00:00Z', 'TRADING', 'SELL', { shares: '-1', amount: '130', symbol: 'CCC' }),
+      op('2024-03-04T09:00:00Z', 'TRADING', 'SELL', { shares: '-1', amount: '120', symbol: 'DDD' }),
+    ]);
+
+    expect(executionQuality(sales(report))?.profitConcentration?.toString()).toBe('90');
+  });
+
+  it('picks the three largest winners, not the first three it meets', () => {
+    // The smallest gain is sold first: a slice taken in sale order would find
+    // 20 + 100 + 50 = 170 and report 85%.
+    const report = calculate([
+      ...['AAA', 'BBB', 'CCC', 'DDD'].map((symbol) =>
+        op('2024-01-01T09:00:00Z', 'TRADING', 'BUY', { shares: '1', amount: '-100', symbol }),
+      ),
+      op('2024-03-01T09:00:00Z', 'TRADING', 'SELL', { shares: '-1', amount: '120', symbol: 'DDD' }),
+      op('2024-03-02T09:00:00Z', 'TRADING', 'SELL', { shares: '-1', amount: '200', symbol: 'AAA' }),
+      op('2024-03-03T09:00:00Z', 'TRADING', 'SELL', { shares: '-1', amount: '150', symbol: 'BBB' }),
+      op('2024-03-04T09:00:00Z', 'TRADING', 'SELL', { shares: '-1', amount: '130', symbol: 'CCC' }),
+    ]);
+
+    expect(executionQuality(sales(report))?.profitConcentration?.toString()).toBe('90');
+  });
+
   it('has nothing to report about an account that never sold', () => {
     const report = calculate([
       op('2024-01-01T09:00:00Z', 'TRADING', 'BUY', { shares: '1', amount: '-10' }),

@@ -42,6 +42,55 @@ export function timeSeries(report: Report): SeriesPoint[] {
   return points;
 }
 
+export interface Setback {
+  /** Largest peak-to-trough fall of the cumulative net profit, as a positive amount. */
+  drawdown: Decimal;
+  /** The day the deepest fall bottomed out. */
+  troughDate: string;
+  /** The worst single day's contribution, as a positive amount. */
+  worstDay: Decimal;
+  /** The day that contributed it. */
+  worstDayDate: string;
+}
+
+/**
+ * How far the cumulative profit fell, and the worst single day inside it.
+ *
+ * The running peak starts at zero rather than at the first point: an account
+ * that only ever loses has fallen from the zero it opened at, and starting the
+ * peak at the first — already negative — point would report no fall at all.
+ *
+ * Null when nothing ever went backwards, which is not the same as a fall of
+ * zero: a card that prints «-0,00 €» invites the reader to look for the day it
+ * happened on.
+ */
+export function setback(points: readonly SeriesPoint[]): Setback | null {
+  let peak = ZERO;
+  let drawdown = ZERO;
+  let troughDate = '';
+  let worstDay = ZERO;
+  let worstDayDate = '';
+
+  for (const point of points) {
+    if (point.net.greaterThan(peak)) peak = point.net;
+    const fall = peak.minus(point.net);
+    if (fall.greaterThan(drawdown)) {
+      drawdown = fall;
+      troughDate = point.date;
+    }
+    if (point.dayProfit.lessThan(worstDay)) {
+      worstDay = point.dayProfit;
+      worstDayDate = point.date;
+    }
+  }
+
+  // The two dates are set together or not at all: the cumulative profit can
+  // only fall on a day that took something away, and a day that took something
+  // away always leaves the curve below the peak it had just been at.
+  if (troughDate === '') return null;
+  return { drawdown, troughDate, worstDay: worstDay.negated(), worstDayDate };
+}
+
 // --- date helpers ---------------------------------------------------------
 
 /**

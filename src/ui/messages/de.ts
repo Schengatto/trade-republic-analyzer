@@ -64,7 +64,8 @@ export const de: Messages = {
   'summary.totalCharges.hint': 'Gebühren und einbehaltene Steuern.',
   'summary.netCapital': 'Netto eingezahltes Kapital',
   'summary.netCapital.hint': 'Einzahlungen abzüglich Auszahlungen.',
-  'summary.returnPercent': 'Rendite von {value} auf das eingezahlte Kapital',
+  'summary.return': 'Rendite auf das Kapital',
+  'summary.return.hint': 'Gesamter Zeitraum, {from} bis {to}. Nicht annualisiert.',
   'summary.returnUnavailable':
     'Rendite nicht verfügbar: das netto eingezahlte Kapital ist null.',
   'summary.operationsRead': '{count} Buchungen gelesen',
@@ -76,11 +77,12 @@ export const de: Messages = {
   'trend.series.trading': 'Handelsgewinn',
   'trend.column.date': 'Datum',
   'trend.column.dayProfit': 'Veränderung am Tag',
+  'trend.drawdown': 'Größter Rückgang',
+  'trend.drawdown.hint': 'Vom vorherigen Höchststand, Tiefpunkt am {date}.',
+  'trend.worstDay': 'Schlechtester Tag',
+  'trend.worstDay.hint': 'Verlust am {date}.',
 
   'composition.heading': 'Wie sich das Ergebnis zusammensetzt',
-  'composition.securitiesInProfit': 'Wertpapiere im Gewinn',
-  'composition.securitiesInLoss': 'Wertpapiere im Verlust',
-  'composition.securitiesBreakEven': 'Ausgeglichene Wertpapiere',
   'composition.grossProfit': 'Bruttogewinn',
   'composition.income': 'Erträge nach Art',
   'composition.incomeNote':
@@ -211,7 +213,7 @@ export const de: Messages = {
 
   'winRate.heading': 'Anteil der Positionen im Gewinn',
   'winRate.caution':
-    'Zusammen mit dem Durchschnittsgewinn und dem Durchschnittsverlust zu lesen: eine hohe Quote mit Verlusten, die größer sind als die Gewinne, bleibt ein negatives Ergebnis.',
+    'Gezählt werden Wertpapiere, nicht einzelne Verkäufe: die Prozentsätze weiter unten messen den Verkauf, und ein anderer Nenner ergibt eine andere Zahl. Zusammen mit dem Durchschnittsgewinn und dem Durchschnittsverlust zu lesen: eine hohe Quote mit Verlusten, die größer sind als die Gewinne, bleibt ein negatives Ergebnis.',
   'winRate.closed': 'Geschlossene Positionen',
   'winRate.wins': 'Im Gewinn',
   'winRate.losses': 'Im Verlust',
@@ -270,8 +272,6 @@ export const de: Messages = {
   'execution.heading': 'Handelsqualität',
   'execution.caution':
     'Ein Verkauf ist ein Symbol an einem Tag: gemeinsam geschlossene Posten zählen einmal. Gemessen wird allein das Handelsergebnis — Dividenden, Zinsen und Belastungen bleiben außen vor.',
-  'execution.sales': 'Verkäufe',
-  'execution.winShare': 'Im Gewinn',
   'execution.profitFactor': 'Profitfaktor',
   'execution.profitFactorHint':
     'Kein Verkauf wurde mit Verlust geschlossen, daher hat das Verhältnis keinen Wert.',
@@ -290,6 +290,8 @@ export const de: Messages = {
   'execution.bucket.M1_TO_M6': '1 bis 6 Monate',
   'execution.bucket.M6_TO_M12': '6 bis 12 Monate',
   'execution.bucket.OVER_1Y': 'Über 1 Jahr',
+  'execution.profitConcentration':
+    'Die drei besten Verkäufe tragen {percent} des Gesamtgewinns.',
   'execution.concentration': 'Die drei schlechtesten Verkäufe tragen {percent} des Gesamtverlusts.',
 
   'chart.showTable': 'Daten als Tabelle anzeigen',

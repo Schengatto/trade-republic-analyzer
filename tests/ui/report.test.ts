@@ -601,7 +601,10 @@ describe('the window composition table', () => {
     expect(tables()).toHaveLength(2);
   });
 
-  it('gives the second table a column per part, plus the total they add up to', () => {
+  it('gives the second table a column per part and no total', () => {
+    // The total is the first table's PROFIT column. Repeating it here printed
+    // the same figure twice under the same word, on a table already at the
+    // width the printed page allows.
     const header = [...tables()[1]!.querySelectorAll('thead th')].map((th) => th.textContent);
     expect(header).toEqual([
       'Window',
@@ -610,8 +613,8 @@ describe('the window composition table', () => {
       'Interest',
       'Other income',
       'Charges',
-      'Profit',
     ]);
+    expect(header).not.toContain('Profit');
   });
 
   it('says the rows overlap, because a reader who sums them is wrong', () => {
@@ -619,20 +622,32 @@ describe('the window composition table', () => {
     expect(windows().textContent).toContain('overlap');
   });
 
-  it('shows the same profit as the totals table, window by window', () => {
+  it('adds up to the profit the totals table states, window by window', () => {
+    // The column that said so was dropped, so the claim it made is asserted
+    // here instead: read the five parts off the page and sum them.
+    const amount = (cell?: Element): number => {
+      const text = (cell?.textContent ?? '').replace(/\u00a0/g, ' ');
+      if (!/\d/.test(text)) return 0; // an em dash, or "No profit movement"
+      return Number(text.replace(/[^0-9.-]/g, ''));
+    };
+
     const [totals, composition] = tables();
     const rows = (table: HTMLTableElement): Element[] => [...table.querySelectorAll('tbody tr')];
     expect(rows(composition!)).toHaveLength(rows(totals!).length);
 
+    let checked = 0;
     rows(composition!).forEach((row, index) => {
       const totalsRow = rows(totals!)[index]!;
       const window = row.children[0]?.textContent;
       expect(window).toBe(totalsRow.children[0]?.textContent);
-      // Profit is the last cell here, the third there.
-      expect(row.children[6]?.textContent, window ?? '').toBe(
-        totalsRow.children[2]?.textContent,
-      );
+
+      const parts = [...row.children].slice(1, 6).reduce((sum, cell) => sum + amount(cell), 0);
+      expect(parts, window ?? '').toBeCloseTo(amount(totalsRow.children[2]), 2);
+      if (parts !== 0) checked += 1;
     });
+
+    // Falsifies the loop: a page of dashes would satisfy every assertion above.
+    expect(checked).toBeGreaterThan(0);
   });
 
   it('writes the charges column as the subtraction it is', () => {
@@ -656,12 +671,18 @@ describe('the window composition table', () => {
       ...ACCOUNT,
       op('2024-05-01', 'CASH', 'CUSTOMER_INBOUND', { amount: '500.00' }),
     ];
-    const oneDay = [...tables(withDeposit)[1]!.querySelectorAll('tbody tr')].at(-1)!;
+    const built = tables(withDeposit);
+    const oneDay = [...built[1]!.querySelectorAll('tbody tr')].at(-1)!;
     const cells = [...oneDay.children].map((cell) => cell.textContent);
 
+    expect(cells).toHaveLength(6);
     expect(cells[0]).toBe('1 day');
-    expect(cells.slice(1, 6)).toEqual(['—', '—', '—', '—', '—']);
-    expect(cells[6]).toBe('No profit movement');
+    expect(cells.slice(1)).toEqual(['—', '—', '—', '—', '—']);
+
+    // The words that replace the zeroes live in the totals table now, and are
+    // the reason this row is allowed to say nothing.
+    const totalsRow = [...built[0]!.querySelectorAll('tbody tr')].at(-1)!;
+    expect(totalsRow.children[2]?.textContent).toBe('No profit movement');
   });
 });
 

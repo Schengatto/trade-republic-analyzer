@@ -64,7 +64,8 @@ export const pt: Messages = {
   'summary.totalCharges.hint': 'Comissões e impostos retidos.',
   'summary.netCapital': 'Capital líquido depositado',
   'summary.netCapital.hint': 'Depósitos menos levantamentos.',
-  'summary.returnPercent': 'Rendibilidade de {value} sobre o capital depositado',
+  'summary.return': 'Rendibilidade do capital',
+  'summary.return.hint': 'Todo o período, de {from} a {to}. Sem anualizar.',
   'summary.returnUnavailable':
     'Rendibilidade indisponível: o capital líquido depositado é igual a zero.',
   'summary.operationsRead': '{count} operações lidas',
@@ -76,11 +77,12 @@ export const pt: Messages = {
   'trend.series.trading': 'Lucro de negociação',
   'trend.column.date': 'Data',
   'trend.column.dayProfit': 'Variação do dia',
+  'trend.drawdown': 'Maior queda',
+  'trend.drawdown.hint': 'Desde o máximo anterior, com mínimo a {date}.',
+  'trend.worstDay': 'Pior dia',
+  'trend.worstDay.hint': 'Perda registada a {date}.',
 
   'composition.heading': 'Como se compõe o resultado',
-  'composition.securitiesInProfit': 'Títulos com mais-valia',
-  'composition.securitiesInLoss': 'Títulos com menos-valia',
-  'composition.securitiesBreakEven': 'Títulos sem ganho nem perda',
   'composition.grossProfit': 'Lucro bruto',
   'composition.income': 'Rendimentos por tipo',
   'composition.incomeNote': 'Já incluídos no lucro bruto acima; isto é apenas o detalhe.',
@@ -210,7 +212,7 @@ export const pt: Messages = {
 
   'winRate.heading': 'Proporção de posições com ganho',
   'winRate.caution':
-    'Leia esta proporção em conjunto com o ganho médio e a perda média: uma proporção elevada com perdas maiores do que os ganhos continua a ser um resultado negativo.',
+    'Aqui contam-se títulos, não vendas individuais: as percentagens mais abaixo são medidas sobre a venda, e um denominador diferente dá outro número. Leia esta proporção em conjunto com o ganho médio e a perda média: uma proporção elevada com perdas maiores do que os ganhos continua a ser um resultado negativo.',
   'winRate.closed': 'Posições fechadas',
   'winRate.wins': 'Com ganho',
   'winRate.losses': 'Com perda',
@@ -269,8 +271,6 @@ export const pt: Messages = {
   'execution.heading': 'Qualidade da negociação',
   'execution.caution':
     'Uma venda é um símbolo num único dia: os lotes fechados em conjunto são contados uma só vez. Isto mede apenas o resultado da negociação — dividendos, juros e encargos ficam de fora.',
-  'execution.sales': 'Vendas',
-  'execution.winShare': 'Com ganho',
   'execution.profitFactor': 'Fator de lucro',
   'execution.profitFactorHint': 'Nenhuma venda fechou com perda, pelo que o rácio não tem valor.',
   'execution.meanProfit': 'Resultado médio',
@@ -288,6 +288,7 @@ export const pt: Messages = {
   'execution.bucket.M1_TO_M6': 'De 1 a 6 meses',
   'execution.bucket.M6_TO_M12': 'De 6 a 12 meses',
   'execution.bucket.OVER_1Y': 'Mais de 1 ano',
+  'execution.profitConcentration': 'As três melhores vendas representam {percent} do ganho total.',
   'execution.concentration': 'As três piores vendas representam {percent} da perda total.',
 
   'chart.showTable': 'Mostrar os dados em tabela',

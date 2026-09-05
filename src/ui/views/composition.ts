@@ -1,25 +1,16 @@
 /** Spec §6.3 — how the net profit is made up. */
 
-import { costDrag, winRate } from '../../core/analytics';
+import { costDrag } from '../../core/analytics';
 import { el } from '../dom';
-import { formatInteger } from '../format';
 import { amountList, humanizeType, section, type ReportContext } from './common';
 
 export function compositionSection(context: ReportContext): HTMLElement {
-  const { report, language, t } = context;
-  const rate = winRate(report);
-
-  const counts = el('div', { class: 'tiles tiles--compact' }, [
-    countTile(t('composition.securitiesInProfit'), rate?.wins ?? 0, language),
-    countTile(t('composition.securitiesInLoss'), rate?.losses ?? 0, language),
-    countTile(t('composition.securitiesBreakEven'), rate?.breakEven ?? 0, language),
-  ]);
+  const { report, t } = context;
 
   const income = Object.entries(report.income).sort((a, b) => b[1].comparedTo(a[1]));
   const taxes = Object.entries(report.taxes).sort((a, b) => b[1].comparedTo(a[1]));
 
   return section('composition', t('composition.heading'), [
-    counts,
     amountList(context, [
       { label: t('composition.grossProfit'), value: report.grossProfit, signed: true },
     ]),
@@ -64,12 +55,5 @@ export function compositionSection(context: ReportContext): HTMLElement {
     amountList(context, [
       { label: t('composition.netProfit'), value: report.netProfit, signed: true, emphasis: true },
     ]),
-  ]);
-}
-
-function countTile(label: string, count: number, language: ReportContext['language']): HTMLElement {
-  return el('div', { class: 'tile' }, [
-    el('p', { class: 'tile__label' }, [label]),
-    el('p', { class: 'tile__value' }, [formatInteger(language, count)]),
   ]);
 }

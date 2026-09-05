@@ -77,7 +77,8 @@ export const it = {
   'summary.totalCharges.hint': 'Commissioni e imposte trattenute.',
   'summary.netCapital': 'Capitale netto versato',
   'summary.netCapital.hint': 'Versamenti meno prelievi.',
-  'summary.returnPercent': 'Rendimento {value} sul capitale versato',
+  'summary.return': 'Rendimento sul capitale',
+  'summary.return.hint': 'Intero periodo, da {from} a {to}. Non annualizzato.',
   'summary.returnUnavailable': 'Rendimento non calcolabile: capitale netto versato pari a zero.',
   'summary.operationsRead': '{count} operazioni lette',
   'summary.period': 'Periodo da {from} a {to}',
@@ -89,11 +90,12 @@ export const it = {
   'trend.series.trading': 'Utile da compravendita',
   'trend.column.date': 'Data',
   'trend.column.dayProfit': 'Variazione del giorno',
+  'trend.drawdown': 'Discesa massima',
+  'trend.drawdown.hint': 'Dal picco precedente, minimo toccato il {date}.',
+  'trend.worstDay': 'Giorno peggiore',
+  'trend.worstDay.hint': 'Perdita registrata il {date}.',
 
   'composition.heading': 'Composizione del risultato',
-  'composition.securitiesInProfit': 'Titoli in utile',
-  'composition.securitiesInLoss': 'Titoli in perdita',
-  'composition.securitiesBreakEven': 'Titoli in pareggio',
   'composition.grossProfit': 'Utile lordo',
   'composition.income': 'Proventi per tipo',
   'composition.incomeNote': 'Già compresi nell’utile lordo qui sopra: questo è solo il dettaglio.',
@@ -236,7 +238,7 @@ export const it = {
 
   'winRate.heading': 'Percentuale di titoli in utile',
   'winRate.caution':
-    'Da leggere insieme all’utile e alla perdita media: una percentuale alta con perdite più grandi dei guadagni resta un risultato negativo.',
+    'Qui si contano i titoli, non le singole vendite: le percentuali più in basso, calcolate sulla vendita, hanno un altro denominatore e dicono un altro numero. Da leggere insieme all’utile e alla perdita media: una percentuale alta con perdite più grandi dei guadagni resta un risultato negativo.',
   'winRate.closed': 'Posizioni chiuse',
   'winRate.wins': 'In utile',
   'winRate.losses': 'In perdita',
@@ -295,8 +297,6 @@ export const it = {
   'execution.heading': 'Qualità dell’operatività',
   'execution.caution':
     'Una vendita è un simbolo in un giorno: i lotti chiusi insieme contano una volta sola. Qui si misura il solo risultato di compravendita — dividendi, interessi e oneri non entrano.',
-  'execution.sales': 'Vendite',
-  'execution.winShare': 'In utile',
   'execution.profitFactor': 'Profit factor',
   'execution.profitFactorHint': 'Nessuna vendita in perdita: il rapporto non ha valore.',
   'execution.meanProfit': 'Risultato medio',
@@ -314,6 +314,8 @@ export const it = {
   'execution.bucket.M1_TO_M6': 'Da 1 a 6 mesi',
   'execution.bucket.M6_TO_M12': 'Da 6 a 12 mesi',
   'execution.bucket.OVER_1Y': 'Oltre 1 anno',
+  'execution.profitConcentration':
+    'Le tre vendite migliori valgono il {percent} del guadagno complessivo.',
   'execution.concentration':
     'Le tre vendite peggiori valgono il {percent} della perdita complessiva.',
 

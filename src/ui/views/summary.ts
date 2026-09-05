@@ -1,18 +1,29 @@
-/** Spec §6.1 — the four headline figures. */
+/** Spec §6.1 — the five headline figures. */
 
 import { returnOnCapital, windowSummaries } from '../../core/analytics';
 import { el } from '../dom';
 import { formatCurrency, formatDate, formatInteger, formatPercent, formatSignedCurrency } from '../format';
-import { section, statTile, type ReportContext } from './common';
+import { NOTHING, section, statTile, type ReportContext } from './common';
 
 export function summarySection(context: ReportContext): HTMLElement {
   const { report, language, t } = context;
   const wholePeriod = windowSummaries(context.operations, report)[0];
   const percent = returnOnCapital(report);
 
-  const capitalHint = percent
-    ? t('summary.returnPercent', { value: formatPercent(language, percent) })
-    : t('summary.returnUnavailable');
+  // The return is a headline figure, not a footnote under the capital: a reader
+  // who sees a percentage assumes a year, so the tile has to name the period it
+  // actually covers. There is no annualised version, and deliberately so — the
+  // capital was paid in progressively, so scaling the result to twelve months
+  // would divide by a base that was never there for twelve months.
+  const returnHint =
+    percent === null
+      ? t('summary.returnUnavailable')
+      : wholePeriod
+        ? t('summary.return.hint', {
+            from: formatDate(language, wholePeriod.from),
+            to: formatDate(language, wholePeriod.to),
+          })
+        : '';
 
   return section('summary', t('summary.heading'), [
     el('p', { class: 'section__meta' }, [
@@ -45,7 +56,13 @@ export function summarySection(context: ReportContext): HTMLElement {
       statTile({
         label: t('summary.netCapital'),
         value: formatCurrency(language, report.netCapitalPaidIn),
-        hint: capitalHint,
+        hint: t('summary.netCapital.hint'),
+      }),
+      statTile({
+        label: t('summary.return'),
+        value: percent === null ? NOTHING : formatPercent(language, percent),
+        ...(returnHint === '' ? {} : { hint: returnHint }),
+        ...(percent === null ? {} : { signed: percent }),
       }),
     ]),
     // The one section that answers the question the reader opened the file

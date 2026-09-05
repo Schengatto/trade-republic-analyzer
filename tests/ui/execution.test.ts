@@ -25,6 +25,20 @@ const FOUR_LOSSES = [
   op('2024-03-04T09:00:00Z', 'TRADING', 'SELL', { shares: '-1', amount: '180', symbol: 'DDD' }),
 ];
 
+/**
+ * +100, +50, +30, +20: the best three carry 90% of the 200 gained. Symbols the
+ * loss fixture does not use, so the two can be loaded into one account.
+ */
+const FOUR_WINS = [
+  ...['EEE', 'FFF', 'GGG', 'HHH'].map((symbol) =>
+    op('2024-01-01T09:00:00Z', 'TRADING', 'BUY', { shares: '1', amount: '-100', symbol }),
+  ),
+  op('2024-03-01T09:00:00Z', 'TRADING', 'SELL', { shares: '-1', amount: '200', symbol: 'EEE' }),
+  op('2024-03-02T09:00:00Z', 'TRADING', 'SELL', { shares: '-1', amount: '150', symbol: 'FFF' }),
+  op('2024-03-03T09:00:00Z', 'TRADING', 'SELL', { shares: '-1', amount: '130', symbol: 'GGG' }),
+  op('2024-03-04T09:00:00Z', 'TRADING', 'SELL', { shares: '-1', amount: '120', symbol: 'HHH' }),
+];
+
 describe('executionSection', () => {
   it('renders nothing for an account that never sold', () => {
     expect(executionSection(contextFor('it', OPEN_ONLY))).toBeNull();
@@ -40,11 +54,13 @@ describe('executionSection', () => {
       .toBe(Node.DOCUMENT_POSITION_FOLLOWING);
   });
 
-  it('shows four tiles: count, share in profit, profit factor, mean result', () => {
+  it('shows only the two tiles the performance gauge does not already carry', () => {
+    // The gauge states the count of sales and the share in profit. Repeating
+    // them here made the same pair of figures appear twice on one page.
     const rendered = executionSection(contextFor('it'))!;
     const labels = [...rendered.querySelectorAll('.tile__label')].map((el) => el.textContent);
 
-    expect(labels).toEqual(['Vendite', 'In utile', 'Profit factor', 'Risultato medio']);
+    expect(labels).toEqual(['Profit factor', 'Risultato medio']);
   });
 
   it('explains an absent profit factor instead of printing a number', () => {
@@ -99,6 +115,31 @@ describe('executionSection', () => {
 
     expect(rendered.textContent).toContain('90');
     expect(rendered.textContent).toContain('peggiori');
+  });
+
+  it('stays silent about profit concentration with three winners or fewer', () => {
+    const rendered = executionSection(contextFor('it'))!;
+
+    expect(rendered.textContent).not.toContain('migliori');
+  });
+
+  it('states the profit concentration once there are four winners', () => {
+    const rendered = executionSection(contextFor('it', FOUR_WINS))!;
+
+    expect(rendered.textContent).toContain('90');
+    expect(rendered.textContent).toContain('migliori');
+  });
+
+  it('asks the same question of both sides, winners first', () => {
+    // An account with four winners and four losers carries both sentences, in
+    // the order the outcome table above reads them.
+    const rendered = executionSection(contextFor('it', [...FOUR_WINS, ...FOUR_LOSSES]))!;
+    const notes = [...rendered.querySelectorAll('.note')].map((n) => n.textContent ?? '');
+
+    const best = notes.findIndex((text) => text.includes('migliori'));
+    const worst = notes.findIndex((text) => text.includes('peggiori'));
+    expect(best).toBeGreaterThan(-1);
+    expect(worst).toBeGreaterThan(best);
   });
 
   it('renders in English too, with no Italian left behind', () => {
