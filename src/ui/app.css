@@ -729,6 +729,16 @@ summary:focus-visible,
   max-width: 92ch;
 }
 
+/* Two banners are two bordered panels in the same stack as the sections below
+   them, so they take the report's own gap. Unstyled this was a plain block:
+   the panels met exactly, drawing their two 1px borders as one 2px line and
+   reading as a single alert with a rule through it. */
+.banners {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
 .banner {
   border: 1px solid var(--alert-border);
   background: var(--alert-surface);
@@ -740,7 +750,18 @@ summary:focus-visible,
   font-size: 0.9rem;
 }
 
-.banner__heading {
+/*
+ * The banner's own heading, and the same defect the <h3> rule above fixes.
+ *
+ * This rule was written as `.banner__heading`, which the markup has never
+ * emitted — `views/banner.ts` writes `.banner__title` — so the <h2> was falling
+ * back to the browser default of 1.5em. Against the panel's 0.9rem that is
+ * 1.35rem: larger than the 1.3rem lead section title directly below it and more
+ * than half again the 1.05rem every other section gets, which made a warning
+ * outrank the report it warns about. 0.95rem over the panel's 0.9rem body
+ * repeats the step a section makes from 1.05rem over 1rem.
+ */
+.banner__title {
   font-size: 0.95rem;
 }
 
