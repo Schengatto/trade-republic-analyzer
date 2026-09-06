@@ -748,6 +748,19 @@ summary:focus-visible,
   margin: 0;
   padding-left: 20px;
 }
+/* The same 0.9rem prose as `.note` and `.limits`, so the same measure. This was
+   the last paragraph in the report still running the full card — 997px of ink
+   at 1440px, about 128 characters a line, the defect `.limits` had before its
+   cap; capped it wraps at 91. The cap sits
+   on the text and the list rather than on `.banner`, because the border and the
+   tint are the alert: shrinking the panel to three quarters of the card would
+   make the loudest thing on the page the narrowest. On the list it covers the
+   20px marker indent, so the bullets land on the same right edge as the prose
+   in the sections below. */
+.banner p,
+.banner__list {
+  max-width: 92ch;
+}
 
 /* --- tiles and amounts --------------------------------------------------- */
 

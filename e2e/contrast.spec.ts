@@ -32,6 +32,13 @@ import { expect, test, type Page } from '@playwright/test';
 import { fileURLToPath } from 'node:url';
 
 const FIXTURE = fileURLToPath(new URL('../tests/fixtures/full-coverage.csv', import.meta.url));
+/**
+ * The alert palette paints nothing under `full-coverage.csv`: every row in it
+ * classifies, so `--alert-surface` and `--alert-border` had never been measured
+ * by the sweep that exists to make measuring unnecessary. This export raises
+ * both banners — see `tests/core/needs-attention.test.ts`.
+ */
+const ALERTS = fileURLToPath(new URL('../tests/fixtures/needs-attention.csv', import.meta.url));
 
 /**
  * Pairs this sweep cannot honestly measure, each with the reason and where the
@@ -183,12 +190,12 @@ type Sample = {
   svg: boolean;
 };
 
-async function load(page: Page): Promise<void> {
+async function load(page: Page, fixture: string = FIXTURE): Promise<void> {
   await page.setViewportSize({ width: 1280, height: 900 });
   await page.goto('/');
   const chooser = page.waitForEvent('filechooser');
   await page.getByRole('button', { name: /csv/i }).click();
-  await (await chooser).setFiles(FIXTURE);
+  await (await chooser).setFiles(fixture);
   await expect(page.locator('#report')).toBeVisible();
   // Each chart's table is a collapsed <details>. Its contents are text a reader
   // reaches by clicking, so they are in scope; closed, they have no box at all
@@ -262,6 +269,41 @@ for (const theme of ['light', 'dark'] as const) {
     expect(failures(samples).length, `\n${report(failures(samples))}\n`).toBe(0);
   });
 }
+
+/*
+ * The alerts, in both palettes, in one page load. They are a separate test
+ * rather than a fifth and sixth fixture-wide sweep because only this export
+ * paints the alert tint, and re-running the other four against it would buy a
+ * second measurement of the same report for four times the CI minutes.
+ */
+test('the alert banners meet AA in both palettes', async ({ page }) => {
+  await load(page, ALERTS);
+
+  for (const theme of ['light', 'dark'] as const) {
+    await page.evaluate((value) => document.documentElement.setAttribute('data-theme', value), theme);
+    const samples = await sample(page);
+
+    // Both banners, and their prose — not just the panels. The heading is the
+    // only classed element of the three, so the paragraph and the bullet are
+    // identified by the words the reader sees.
+    const titles = samples.filter((s) => s.element === 'h2.banner__title');
+    expect(titles.map((s) => s.text), `both banners painted in ${theme}`).toEqual([
+      'Unrecognised operations',
+      'Anomalies found in the data',
+    ]);
+    expect(
+      samples.some((s) => /carry a type the engine/.test(s.text)),
+      `the unclassified paragraph was swept in ${theme}`,
+    ).toBe(true);
+    expect(
+      samples.some((s) => s.element === 'li' && /sold 12 units/.test(s.text)),
+      `the anomaly bullet was swept in ${theme}`,
+    ).toBe(true);
+
+    expect(samples.length, 'elements painting text').toBeGreaterThan(50);
+    expect(failures(samples).length, `${theme}\n${report(failures(samples))}\n`).toBe(0);
+  }
+});
 
 /*
  * The sweep passing is only evidence if the sweep can fail. Both pairs below are
