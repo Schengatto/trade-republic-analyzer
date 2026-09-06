@@ -1083,6 +1083,14 @@ summary:focus-visible,
   margin: 0;
   color: var(--ink-muted);
   font-size: 0.9rem;
+  /* Stessa prosa di `.note`, stesso corpo, quindi stessa misura: senza il tetto
+     queste tre righe correrebbero per tutta la card mentre la nota sopra di
+     loro si ferma a 92ch, e due paragrafi affiancati finirebbero su due colonne
+     diverse. Le stringhe di oggi stanno abbondantemente dentro il tetto — la
+     più lunga misura ~310px contro i ~714px del cap — quindi la regola non
+     cambia niente adesso: tiene la riga allineata alla nota quando una lingua
+     più lunga, o un intervallo di date più largo, la farà crescere. */
+  max-width: 92ch;
 }
 
 .performance__withheld:empty {
