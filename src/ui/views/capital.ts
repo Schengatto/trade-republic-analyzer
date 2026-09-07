@@ -22,6 +22,7 @@ import {
   monthlyCapital,
   overallCapital,
   type MonthlyCapital,
+  type OverallCapital,
 } from '../../core/capital';
 import { groupedRowChart } from '../chart/bars';
 import { figure } from '../chart/figure';
@@ -51,25 +52,7 @@ export function capitalSection(context: ReportContext): HTMLElement | null {
   const months = monthlyCapital(operations, report);
   if (months.length === 0) return null;
 
-  /*
-   * L'intero periodo in due cifre, sopra i mesi. Il tasso viaggia accanto alla
-   * sua base e non da solo: un rendimento annuo senza il capitale su cui è
-   * calcolato costringerebbe a indovinare il denominatore, e qui il
-   * denominatore è il capitale a rischio, non il denaro versato — cioè una
-   * grandezza diversa da quella del rendimento in Sintesi.
-   *
-   * L'etichetta del primo è quella della legenda: è la stessa serie, misurata
-   * una volta sull'intero periodo invece che mese per mese.
-   */
   const overall = overallCapital(operations, report);
-  const annualHint =
-    overall === null || overall.annualPercent !== null
-      ? t('capital.annualReturn.hint')
-      : overall.days < MIN_ANNUALISED_DAYS
-        ? t('capital.annualReturn.tooShort', {
-            days: formatInteger(language, MIN_ANNUALISED_DAYS),
-          })
-        : t('capital.annualReturn.unavailable');
 
   const years = [...new Set(months.map((month) => month.month.slice(0, 4)))];
   // L'ultimo: è il periodo di cui il lettore sta chiedendo conto. Aprire sul
@@ -118,26 +101,11 @@ export function capitalSection(context: ReportContext): HTMLElement | null {
   redraw();
 
   return section('capital', t('capital.heading'), [
-    overall &&
-      el('div', { class: 'tiles' }, [
-        statTile({
-          label: t('capitalInvested.series'),
-          value: formatCurrency(language, overall.averageCapital),
-          hint: t('capital.averageCapital.hint', {
-            days: formatInteger(language, overall.days),
-          }),
-        }),
-        statTile({
-          label: t('capital.annualReturn'),
-          value:
-            overall.annualPercent === null
-              ? NOTHING
-              : formatSignedPercent(language, overall.annualPercent),
-          hint: annualHint,
-          // Omesso nel ramo nullo, o il trattino prenderebbe un colore.
-          ...(overall.annualPercent === null ? {} : { signed: overall.annualPercent }),
-        }),
-      ]),
+    overall && wholePeriod(context, overall),
+    // La base, subito sotto le cifre che la usano. In fondo alla sezione
+    // arriverebbe a confronto già fatto: è lì che il lettore mette questo tasso
+    // accanto a quello della Sintesi e conclude che uno dei due è sbagliato.
+    overall && note(t('capital.basis')),
     // Prima della figura, non dopo: su carta il selettore sparisce e questa
     // riga è la sola cosa che dichiara l'anno disegnato.
     yearSlot,
@@ -216,6 +184,62 @@ export function capitalSection(context: ReportContext): HTMLElement | null {
       table: table(context, months),
     }),
     note(t('capital.caution')),
+  ]);
+}
+
+/**
+ * L'intero periodo in tre cifre che sono un conto, letto da sinistra a destra:
+ * l'utile diviso il capitale medio fa il rendimento del periodo, e quello
+ * riportato a 365 giorni fa il tasso annuo.
+ *
+ * Il tasso da solo non reggeva. Accanto al «rendimento sul capitale» della
+ * Sintesi si legge come una contraddizione — un 44% annuo sotto un 46% su due
+ * anni — perché le due cifre differiscono per tre cose insieme: il numeratore
+ * (qui compravendite e dividendi lordi, là l'utile netto), il denominatore (qui
+ * il capitale a rischio, là tutto il denaro versato) e la scalatura. Stampare
+ * la cifra di mezzo rende visibile la terza; le altre due le dichiara la nota
+ * sotto i tasselli. Senza, restano due percentuali inconciliabili.
+ *
+ * L'etichetta della prima è quella della legenda: è la stessa serie, misurata
+ * una volta sull'intero periodo invece che mese per mese.
+ */
+function wholePeriod(context: ReportContext, overall: OverallCapital): HTMLElement {
+  const { language, t } = context;
+  const period =
+    overall.periodPercent === null ? null : formatSignedPercent(language, overall.periodPercent);
+
+  return el('div', { class: 'tiles' }, [
+    statTile({
+      label: t('capitalInvested.series'),
+      value: formatCurrency(language, overall.averageCapital),
+      hint: t('capital.averageCapital.hint', { days: formatInteger(language, overall.days) }),
+    }),
+    statTile({
+      label: t('capital.overallProfit'),
+      value: formatSignedCurrency(language, overall.profit),
+      signed: overall.profit,
+      hint:
+        period === null
+          ? t('capital.annualReturn.unavailable')
+          : t('capital.overallProfit.hint', { period, days: formatInteger(language, overall.days) }),
+    }),
+    statTile({
+      label: t('capital.annualReturn'),
+      value:
+        overall.annualPercent === null
+          ? NOTHING
+          : formatSignedPercent(language, overall.annualPercent),
+      hint:
+        period === null
+          ? t('capital.annualReturn.unavailable')
+          : overall.annualPercent === null
+            ? t('capital.annualReturn.tooShort', {
+                days: formatInteger(language, MIN_ANNUALISED_DAYS),
+              })
+            : t('capital.annualReturn.hint', { period }),
+      // Omesso nel ramo nullo, o il trattino prenderebbe un colore.
+      ...(overall.annualPercent === null ? {} : { signed: overall.annualPercent }),
+    }),
   ]);
 }
 

@@ -182,7 +182,10 @@ describe('the capital section', () => {
   });
 
   it('warns that this profit is not the one in the monthly heatmap', () => {
-    expect(render('en').querySelector('.note')?.textContent).toContain('Month by month');
+    // L'ultima nota della sezione, non la prima: sopra la tabella c'è quella
+    // che dichiara la base del tasso annuo.
+    const notes = [...render('en').querySelectorAll('.note')];
+    expect(notes.at(-1)?.textContent).toContain('Month by month');
   });
 
   it('says nothing at all when the file holds no operations', () => {
@@ -211,9 +214,10 @@ describe('the whole-period tiles', () => {
     op('2024-04-30', 'TRADING', 'SELL', { shares: '-10', amount: '160.00' }),
   ];
 
-  it('states the rate beside the capital it was taken on', () => {
-    // Il denominatore qui è il capitale a rischio, non il denaro versato: senza
-    // la base accanto, il lettore non ha modo di sapere per cosa è diviso.
+  it('prints the whole calculation, not just its result', () => {
+    // Un tasso annuo da solo, accanto al rendimento sul capitale della Sintesi,
+    // si legge come una contraddizione: servono la base, l'utile e la
+    // percentuale del periodo perché il lettore possa rifare il conto.
     expect(tiles(render('en', UNEVEN))).toEqual([
       {
         label: 'Average capital invested',
@@ -221,32 +225,43 @@ describe('the whole-period tiles', () => {
         hint: 'Averaged over the 92 days of the period, weekends included.',
       },
       {
+        label: 'Profit on the capital',
+        value: '+€60.00',
+        hint: '+51.11% of the average capital, over 92 days.',
+      },
+      {
         label: 'Annual return',
         value: '+202.78%',
-        hint: 'Profit over the average capital, scaled to 365 days. Simple scaling, not compounded.',
+        hint: '+51.11% for the period, scaled to 365 days. Simple scaling, not compounded.',
       },
     ]);
   });
 
-  it('comes before the figure, where the printed page still has it', () => {
-    // Su carta il selettore sparisce; queste due cifre e la riga dell'anno sono
-    // ciò che resta a dichiarare di cosa parla la sezione.
-    const children = [...render('en', UNEVEN).children].map((child) => child.className);
-    expect(children.indexOf('tiles')).toBe(1);
-    expect(children.indexOf('tiles')).toBeLessThan(
-      children.findIndex((name) => name.includes('capital__year')),
+  it('names the basis under the tiles, before the figure', () => {
+    // La nota deve arrivare prima che il lettore metta questo tasso accanto a
+    // quello della Sintesi: in fondo alla sezione il confronto è già fatto.
+    const children = [...render('en', UNEVEN).children];
+    const tilesAt = children.findIndex((child) => child.className === 'tiles');
+    const basis = children[tilesAt + 1]!;
+    expect(basis.className).toContain('note');
+    expect(basis.textContent).toContain('not comparable');
+    expect(tilesAt).toBe(1);
+    expect(tilesAt).toBeLessThan(
+      children.findIndex((child) => child.className.includes('capital__year')),
     );
   });
 
   it('withholds the rate on a history too short to annualise', () => {
-    const short = tiles(render('en', ACCOUNT))[1]!;
+    const short = tiles(render('en', ACCOUNT))[2]!;
     expect(short.value).toBe('—');
     expect(short.hint).toBe('At least 90 days of history are needed to scale the result to a year.');
+    // Solo la scalatura manca: il rendimento del periodo è misurato e resta.
+    expect(tiles(render('en', ACCOUNT))[1]!.hint).toContain('%');
   });
 
   it('leaves the withheld rate uncoloured', () => {
     // Un trattino verde direbbe che il periodo è andato bene.
-    const value = render('en', ACCOUNT).querySelectorAll('.tiles .tile__value')[1]!;
+    const value = render('en', ACCOUNT).querySelectorAll('.tiles .tile__value')[2]!;
     expect(value.className).toBe('tile__value');
   });
 
@@ -257,6 +272,10 @@ describe('the whole-period tiles', () => {
       op('2024-01-10', 'CASH', 'CUSTOMER_INBOUND', { amount: '1000.00' }),
       op('2024-06-15', 'CASH', 'INTEREST_PAYMENT', { amount: '5.00' }),
     ];
-    expect(tiles(render('en', cashOnly))[1]!.hint).toBe('No capital was invested in the period.');
+    const withoutCapital = tiles(render('en', cashOnly));
+    expect(withoutCapital[2]!.hint).toBe('No capital was invested in the period.');
+    // Senza denominatore non c'è nemmeno la percentuale del periodo: il
+    // tassello di mezzo deve dire la stessa cosa, non una divisione per zero.
+    expect(withoutCapital[1]!.hint).toBe('No capital was invested in the period.');
   });
 });

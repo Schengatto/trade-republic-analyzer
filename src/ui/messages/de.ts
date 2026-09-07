@@ -192,12 +192,16 @@ export const de: Messages = {
   'capital.heading': 'Kapital und Rendite',
   'capital.averageCapital.hint':
     'Gemittelt über die {days} Tage des Zeitraums, Wochenenden eingeschlossen.',
+  'capital.overallProfit': 'Gewinn auf das Kapital',
+  'capital.overallProfit.hint': '{period} des durchschnittlichen Kapitals, in {days} Tagen.',
   'capital.annualReturn': 'Jahresrendite',
   'capital.annualReturn.hint':
-    'Gewinn auf das durchschnittliche Kapital, auf 365 Tage hochgerechnet. Einfache Hochrechnung, ohne Zinseszins.',
+    '{period} im Zeitraum, auf 365 Tage hochgerechnet. Einfache Hochrechnung, ohne Zinseszins.',
   'capital.annualReturn.tooShort':
     'Für die Hochrechnung auf ein Jahr sind mindestens {days} Tage Historie nötig.',
   'capital.annualReturn.unavailable': 'Im Zeitraum war kein Kapital investiert.',
+  'capital.basis':
+    'Diese drei Zahlen sind eine einzige Rechnung: Handelsgeschäfte und Dividenden brutto, geteilt durch das Kapital, das tatsächlich im Risiko stand, und das Ergebnis auf ein Jahr hochgerechnet. Die Rendite auf das Kapital in der Übersicht misst etwas anderes — Gewinn nach Kosten und Steuern, geteilt durch alles eingezahlte Geld — die beiden Prozentsätze sind also nicht vergleichbar.',
   'capital.figure': 'Kapital und Ergebnis, Monat für Monat',
   'capital.description':
     'Zwei Balken je Monat: die Kosten der offenen Positionen, am Ende jedes Tages gemessen und über die Tage des Monats gemittelt, Wochenenden eingeschlossen, und daneben die realisierten Handelsergebnisse samt Dividenden desselben Monats. Das Diagramm zeigt ein Jahr auf einmal; die Tabelle führt alle auf, mit den Tagen, über die jeweils gemittelt wurde — der erste und der letzte Monat sind unvollständig.',

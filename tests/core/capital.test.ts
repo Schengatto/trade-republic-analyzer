@@ -171,7 +171,18 @@ describe('overallCapital', () => {
     // 60 € su 117,39 € sono il 51,11% in 92 giorni. Riportati a 365 giorni per
     // scalatura semplice fanno 202,78%; capitalizzati ne farebbero 414,60, e
     // senza riportarli resterebbero 51,11.
-    expect(eur(overallOf(UNEVEN)!.annualPercent!)).toBe('202.78');
+    const overall = overallOf(UNEVEN)!;
+    expect(eur(overall.periodPercent!)).toBe('51.11');
+    expect(eur(overall.annualPercent!)).toBe('202.78');
+  });
+
+  it('scales the published period rate, so the printed step reconciles', () => {
+    // Il lettore vede le due percentuali una accanto all'altra e moltiplica:
+    // se l'annuo venisse da una seconda divisione, il passaggio stampato non
+    // tornerebbe alla cifra pubblicata.
+    const overall = overallOf(UNEVEN)!;
+    const scaled = overall.periodPercent!.times(365).div(overall.days);
+    expect(overall.annualPercent!.equals(scaled)).toBe(true);
   });
 
   it('annualises from the ninetieth day, and not from the eighty-ninth', () => {
@@ -186,6 +197,11 @@ describe('overallCapital', () => {
     expect([short.days, exact.days]).toEqual([MIN_ANNUALISED_DAYS - 1, MIN_ANNUALISED_DAYS]);
     expect(short.annualPercent).toBeNull();
     expect(exact.annualPercent).not.toBeNull();
+    // Solo la scalatura è trattenuta: il rendimento del periodo è misurato, e
+    // sotto la soglia resta l'unica percentuale onesta da stampare.
+    // 100 € su 988,76 €: il giorno della vendita il capitale è già uscito, e
+    // la media pesata lo sconta.
+    expect(eur(short.periodPercent!)).toBe('10.11');
     // Il tasso è trattenuto, il capitale no: è la cifra su cui il tasso manca.
     expect(short.averageCapital.gt(0)).toBe(true);
     expect(eur(short.profit)).toBe('100.00');
@@ -198,6 +214,7 @@ describe('overallCapital', () => {
     ])!;
     expect(overall.days).toBeGreaterThan(MIN_ANNUALISED_DAYS);
     expect(eur(overall.averageCapital)).toBe('0.00');
+    expect(overall.periodPercent).toBeNull();
     expect(overall.annualPercent).toBeNull();
   });
 
@@ -213,6 +230,7 @@ describe('overallCapital', () => {
     ])!;
     expect(overall.days).toBeGreaterThan(MIN_ANNUALISED_DAYS);
     expect(eur(overall.averageCapital)).toBe('0.00');
+    expect(overall.periodPercent).toBeNull();
     expect(overall.annualPercent).toBeNull();
     expect(eur(overall.profit)).toBe('37.00');
   });

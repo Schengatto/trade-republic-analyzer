@@ -188,12 +188,16 @@ export const en: Messages = {
 
   'capital.heading': 'Capital and return',
   'capital.averageCapital.hint': 'Averaged over the {days} days of the period, weekends included.',
+  'capital.overallProfit': 'Profit on the capital',
+  'capital.overallProfit.hint': '{period} of the average capital, over {days} days.',
   'capital.annualReturn': 'Annual return',
   'capital.annualReturn.hint':
-    'Profit over the average capital, scaled to 365 days. Simple scaling, not compounded.',
+    '{period} for the period, scaled to 365 days. Simple scaling, not compounded.',
   'capital.annualReturn.tooShort':
     'At least {days} days of history are needed to scale the result to a year.',
   'capital.annualReturn.unavailable': 'No capital was invested in the period.',
+  'capital.basis':
+    'These three figures are one calculation: trades and dividends gross, divided by the capital that was actually at risk, and the result carried to a year. The return on capital in the summary measures something else — profit net of charges and taxes, divided by every euro paid in — so the two percentages are not comparable.',
   'capital.figure': 'Capital and result, month by month',
   'capital.description':
     'Two bars for each month: the cost of the open positions, measured at the close of each day and averaged over the days of the month, weekends included, and beside it the realized trading plus dividends for the same month. The chart shows one year at a time; the table lists them all, with the days each average was taken over — the first and last months are partial.',

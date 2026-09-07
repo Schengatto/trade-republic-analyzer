@@ -36,7 +36,9 @@ export interface OverallCapital {
   days: number;
   /** Trading realizzato + dividendi dell'intero periodo. */
   profit: Decimal;
-  /** `null` quando non c'era capitale, o quando la storia è troppo breve. */
+  /** `profit` su `averageCapital`, sui giorni che ci sono stati. `null` senza capitale. */
+  periodPercent: Decimal | null;
+  /** `periodPercent` riportato a 365 giorni; `null` anche se la storia è troppo breve. */
   annualPercent: Decimal | null;
 }
 
@@ -146,6 +148,13 @@ export function monthlyCapital(
  * contiene. È anche il motivo per cui questo numero si può annualizzare mentre
  * `returnOnCapital` no: là il denominatore è tutto il denaro mai versato, che
  * non è mai stato sul conto per l'intero periodo.
+ *
+ * `periodPercent` è pubblicato accanto ad `annualPercent`, e non tenuto come
+ * passaggio interno, perché è il solo modo che il lettore ha di rifare il
+ * conto: un tasso annuo da solo, accanto al rendimento sul capitale della
+ * Sintesi, si legge come una contraddizione — le due cifre differiscono di
+ * numeratore, di denominatore *e* di scalatura, e senza la cifra di mezzo non
+ * c'è aritmetica che le riconcili.
  */
 export function overallCapital(
   operations: readonly Operation[],
@@ -169,13 +178,21 @@ export function overallCapital(
     ZERO,
   );
 
+  const periodPercent = hasPrintedCapital(averageCapital)
+    ? profit.div(averageCapital).times(PERCENT)
+    : null;
+
   return {
     averageCapital,
     days,
     profit,
+    periodPercent,
+    // Scalato dalla cifra pubblicata, non da una seconda divisione: il tasso
+    // annuo deve essere esattamente il numero che la pagina mostra riportato a
+    // 365 giorni, o il passaggio stampato non tornerebbe.
     annualPercent:
-      hasPrintedCapital(averageCapital) && days >= MIN_ANNUALISED_DAYS
-        ? profit.div(averageCapital).times(PERCENT).times(DAYS_IN_A_YEAR).div(days)
+      periodPercent !== null && days >= MIN_ANNUALISED_DAYS
+        ? periodPercent.times(DAYS_IN_A_YEAR).div(days)
         : null,
   };
 }

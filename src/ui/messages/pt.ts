@@ -191,12 +191,16 @@ export const pt: Messages = {
   'capital.heading': 'Capital e rendibilidade',
   'capital.averageCapital.hint':
     'Média sobre os {days} dias do período, fins de semana incluídos.',
+  'capital.overallProfit': 'Lucro sobre o capital',
+  'capital.overallProfit.hint': '{period} do capital médio, em {days} dias.',
   'capital.annualReturn': 'Rendibilidade anual',
   'capital.annualReturn.hint':
-    'Lucro sobre o capital médio, convertido para 365 dias. Escala simples, sem capitalização.',
+    '{period} do período, convertido para 365 dias. Escala simples, sem capitalização.',
   'capital.annualReturn.tooShort':
     'São precisos pelo menos {days} dias de histórico para converter o resultado para um ano.',
   'capital.annualReturn.unavailable': 'No período não havia capital investido.',
+  'capital.basis':
+    'Estes três números são uma só conta: compras e vendas e dividendos em bruto, divididos pelo capital que esteve realmente em risco, e o resultado convertido para um ano. A rendibilidade sobre o capital no resumo mede outra coisa — lucro líquido de encargos e retenções, dividido por todo o dinheiro depositado — por isso as duas percentagens não são comparáveis.',
   'capital.figure': 'Capital e resultado, mês a mês',
   'capital.description':
     'Duas barras para cada mês: o custo das posições abertas, medido no fecho de cada dia e calculado em média sobre os dias do mês, fins de semana incluídos, e ao lado a negociação realizada mais os dividendos do mesmo mês. O gráfico mostra um ano de cada vez; a tabela guarda-os todos, com os dias sobre os quais cada média foi tirada — o primeiro e o último mês são parciais.',

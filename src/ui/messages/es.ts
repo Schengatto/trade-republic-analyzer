@@ -192,12 +192,16 @@ export const es: Messages = {
   'capital.heading': 'Capital y rentabilidad',
   'capital.averageCapital.hint':
     'Promediado sobre los {days} días del periodo, fines de semana incluidos.',
+  'capital.overallProfit': 'Beneficio sobre el capital',
+  'capital.overallProfit.hint': '{period} del capital medio, en {days} días.',
   'capital.annualReturn': 'Rentabilidad anual',
   'capital.annualReturn.hint':
-    'Beneficio sobre el capital medio, llevado a 365 días. Escalado simple, sin capitalizar.',
+    '{period} del periodo, llevado a 365 días. Escalado simple, sin capitalizar.',
   'capital.annualReturn.tooShort':
     'Hacen falta al menos {days} días de historial para llevar el resultado a un año.',
   'capital.annualReturn.unavailable': 'En el periodo no había capital invertido.',
+  'capital.basis':
+    'Estas tres cifras son un solo cálculo: compraventas y dividendos en bruto, divididos por el capital que estuvo realmente en riesgo, y el resultado llevado a un año. La rentabilidad sobre el capital del resumen mide otra cosa — beneficio neto de gastos y retenciones, dividido por todo el dinero aportado — así que los dos porcentajes no son comparables.',
   'capital.figure': 'Capital y resultado, mes a mes',
   'capital.description':
     'Dos barras por cada mes: el coste de las posiciones abiertas, medido al cierre de cada día y promediado sobre los días del mes, fines de semana incluidos, y al lado la operativa realizada más los dividendos del mismo mes. El gráfico muestra un año cada vez; la tabla los recoge todos, con los días sobre los que se ha tomado cada media — el primer y el último mes son parciales.',

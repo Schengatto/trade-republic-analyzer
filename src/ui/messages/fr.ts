@@ -192,12 +192,16 @@ export const fr: Messages = {
   'capital.heading': 'Capital et rendement',
   'capital.averageCapital.hint':
     'Moyenne sur les {days} jours de la période, week-ends compris.',
+  'capital.overallProfit': 'Résultat sur le capital',
+  'capital.overallProfit.hint': '{period} du capital moyen, en {days} jours.',
   'capital.annualReturn': 'Rendement annuel',
   'capital.annualReturn.hint':
-    'Résultat rapporté au capital moyen, ramené à 365 jours. Mise à l’échelle simple, sans capitalisation.',
+    '{period} sur la période, ramené à 365 jours. Mise à l’échelle simple, sans capitalisation.',
   'capital.annualReturn.tooShort':
     'Il faut au moins {days} jours d’historique pour ramener le résultat à une année.',
   'capital.annualReturn.unavailable': 'Aucun capital investi sur la période.',
+  'capital.basis':
+    'Ces trois chiffres forment un seul calcul : achats-ventes et dividendes bruts, divisés par le capital réellement exposé, et le résultat ramené à une année. Le rendement du capital de la synthèse mesure autre chose — le résultat net de frais et de retenues, divisé par tout l’argent versé — les deux pourcentages ne se comparent donc pas.',
   'capital.figure': 'Capital et résultat, mois par mois',
   'capital.description':
     'Deux barres pour chaque mois : le coût des positions ouvertes, mesuré à la clôture de chaque journée et moyenné sur les jours du mois, week-ends compris, et à côté le résultat de négociation réalisé plus les dividendes du même mois. Le graphique montre une année à la fois ; le tableau les garde toutes, avec les jours sur lesquels chaque moyenne a été prise — le premier et le dernier mois sont partiels.',
