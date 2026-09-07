@@ -215,6 +215,13 @@ export const it = {
   'monthly.column.transactions': 'Righe BUY e SELL',
 
   'capital.heading': 'Capitale e rendimento',
+  'capital.averageCapital.hint': 'Media sui {days} giorni del periodo, weekend compresi.',
+  'capital.annualReturn': 'Rendimento annuo',
+  'capital.annualReturn.hint':
+    'Utile sul capitale medio, riportato a 365 giorni. Scalatura semplice, senza capitalizzazione.',
+  'capital.annualReturn.tooShort':
+    'Servono almeno {days} giorni di storia per riportare il risultato a un anno.',
+  'capital.annualReturn.unavailable': 'Nel periodo non c’era capitale investito.',
   'capital.figure': 'Capitale e risultato, mese per mese',
   'capital.description':
     'Per ogni mese due barre: il costo delle posizioni aperte, misurato a fine di ogni giornata e mediato sui giorni del mese weekend compresi, e accanto le compravendite realizzate più i dividendi dello stesso mese. Il grafico mostra un anno per volta; la tabella li elenca tutti, con i giorni su cui ogni media è stata presa — il primo e l’ultimo mese sono parziali.',

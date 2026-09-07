@@ -190,6 +190,14 @@ export const de: Messages = {
   'monthly.column.transactions': 'BUY- und SELL-Zeilen',
 
   'capital.heading': 'Kapital und Rendite',
+  'capital.averageCapital.hint':
+    'Gemittelt über die {days} Tage des Zeitraums, Wochenenden eingeschlossen.',
+  'capital.annualReturn': 'Jahresrendite',
+  'capital.annualReturn.hint':
+    'Gewinn auf das durchschnittliche Kapital, auf 365 Tage hochgerechnet. Einfache Hochrechnung, ohne Zinseszins.',
+  'capital.annualReturn.tooShort':
+    'Für die Hochrechnung auf ein Jahr sind mindestens {days} Tage Historie nötig.',
+  'capital.annualReturn.unavailable': 'Im Zeitraum war kein Kapital investiert.',
   'capital.figure': 'Kapital und Ergebnis, Monat für Monat',
   'capital.description':
     'Zwei Balken je Monat: die Kosten der offenen Positionen, am Ende jedes Tages gemessen und über die Tage des Monats gemittelt, Wochenenden eingeschlossen, und daneben die realisierten Handelsergebnisse samt Dividenden desselben Monats. Das Diagramm zeigt ein Jahr auf einmal; die Tabelle führt alle auf, mit den Tagen, über die jeweils gemittelt wurde — der erste und der letzte Monat sind unvollständig.',

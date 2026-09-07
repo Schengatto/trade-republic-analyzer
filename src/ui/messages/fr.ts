@@ -190,6 +190,14 @@ export const fr: Messages = {
   'monthly.column.transactions': 'Lignes BUY et SELL',
 
   'capital.heading': 'Capital et rendement',
+  'capital.averageCapital.hint':
+    'Moyenne sur les {days} jours de la période, week-ends compris.',
+  'capital.annualReturn': 'Rendement annuel',
+  'capital.annualReturn.hint':
+    'Résultat rapporté au capital moyen, ramené à 365 jours. Mise à l’échelle simple, sans capitalisation.',
+  'capital.annualReturn.tooShort':
+    'Il faut au moins {days} jours d’historique pour ramener le résultat à une année.',
+  'capital.annualReturn.unavailable': 'Aucun capital investi sur la période.',
   'capital.figure': 'Capital et résultat, mois par mois',
   'capital.description':
     'Deux barres pour chaque mois : le coût des positions ouvertes, mesuré à la clôture de chaque journée et moyenné sur les jours du mois, week-ends compris, et à côté le résultat de négociation réalisé plus les dividendes du même mois. Le graphique montre une année à la fois ; le tableau les garde toutes, avec les jours sur lesquels chaque moyenne a été prise — le premier et le dernier mois sont partiels.',

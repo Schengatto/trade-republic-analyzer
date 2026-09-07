@@ -190,6 +190,14 @@ export const nl: Messages = {
   'monthly.column.transactions': 'BUY- en SELL-regels',
 
   'capital.heading': 'Kapitaal en rendement',
+  'capital.averageCapital.hint':
+    'Gemiddeld over de {days} dagen van de periode, weekends inbegrepen.',
+  'capital.annualReturn': 'Jaarrendement',
+  'capital.annualReturn.hint':
+    'Winst op het gemiddelde kapitaal, omgerekend naar 365 dagen. Eenvoudige omrekening, zonder samengestelde interest.',
+  'capital.annualReturn.tooShort':
+    'Er zijn minstens {days} dagen historie nodig om het resultaat naar een jaar om te rekenen.',
+  'capital.annualReturn.unavailable': 'In de periode was er geen kapitaal geïnvesteerd.',
   'capital.figure': 'Kapitaal en resultaat, maand voor maand',
   'capital.description':
     'Twee balken per maand: de kostprijs van de open posities, gemeten aan het eind van elke dag en gemiddeld over de dagen van de maand, weekends inbegrepen, en daarnaast het gerealiseerde handelsresultaat plus de dividenden van dezelfde maand. De grafiek toont één jaar tegelijk; de tabel houdt ze alle, met de dagen waarover elk gemiddelde is genomen — de eerste en de laatste maand zijn gedeeltelijk.',

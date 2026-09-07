@@ -17,7 +17,12 @@
  * stampare una scelta fatta a schermo da qualcun altro. Su carta il `<select>`
  * sparisce, quindi l'anno disegnato lo dichiara la riga sopra la figura.
  */
-import { monthlyCapital, type MonthlyCapital } from '../../core/capital';
+import {
+  MIN_ANNUALISED_DAYS,
+  monthlyCapital,
+  overallCapital,
+  type MonthlyCapital,
+} from '../../core/capital';
 import { groupedRowChart } from '../chart/bars';
 import { figure } from '../chart/figure';
 import { extent } from '../chart/geometry';
@@ -37,6 +42,7 @@ import {
   section,
   signedCell,
   signedPercentCell,
+  statTile,
   type ReportContext,
 } from './common';
 
@@ -44,6 +50,26 @@ export function capitalSection(context: ReportContext): HTMLElement | null {
   const { language, operations, report, t } = context;
   const months = monthlyCapital(operations, report);
   if (months.length === 0) return null;
+
+  /*
+   * L'intero periodo in due cifre, sopra i mesi. Il tasso viaggia accanto alla
+   * sua base e non da solo: un rendimento annuo senza il capitale su cui è
+   * calcolato costringerebbe a indovinare il denominatore, e qui il
+   * denominatore è il capitale a rischio, non il denaro versato — cioè una
+   * grandezza diversa da quella del rendimento in Sintesi.
+   *
+   * L'etichetta del primo è quella della legenda: è la stessa serie, misurata
+   * una volta sull'intero periodo invece che mese per mese.
+   */
+  const overall = overallCapital(operations, report);
+  const annualHint =
+    overall === null || overall.annualPercent !== null
+      ? t('capital.annualReturn.hint')
+      : overall.days < MIN_ANNUALISED_DAYS
+        ? t('capital.annualReturn.tooShort', {
+            days: formatInteger(language, MIN_ANNUALISED_DAYS),
+          })
+        : t('capital.annualReturn.unavailable');
 
   const years = [...new Set(months.map((month) => month.month.slice(0, 4)))];
   // L'ultimo: è il periodo di cui il lettore sta chiedendo conto. Aprire sul
@@ -92,6 +118,26 @@ export function capitalSection(context: ReportContext): HTMLElement | null {
   redraw();
 
   return section('capital', t('capital.heading'), [
+    overall &&
+      el('div', { class: 'tiles' }, [
+        statTile({
+          label: t('capitalInvested.series'),
+          value: formatCurrency(language, overall.averageCapital),
+          hint: t('capital.averageCapital.hint', {
+            days: formatInteger(language, overall.days),
+          }),
+        }),
+        statTile({
+          label: t('capital.annualReturn'),
+          value:
+            overall.annualPercent === null
+              ? NOTHING
+              : formatSignedPercent(language, overall.annualPercent),
+          hint: annualHint,
+          // Omesso nel ramo nullo, o il trattino prenderebbe un colore.
+          ...(overall.annualPercent === null ? {} : { signed: overall.annualPercent }),
+        }),
+      ]),
     // Prima della figura, non dopo: su carta il selettore sparisce e questa
     // riga è la sola cosa che dichiara l'anno disegnato.
     yearSlot,

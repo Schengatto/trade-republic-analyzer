@@ -189,3 +189,74 @@ describe('the capital section', () => {
     expect(capitalSection(contextFor('en', []))).toBeNull();
   });
 });
+
+/** Etichetta, cifra e nota di ogni tassello, nell'ordine in cui stanno. */
+function tiles(root: HTMLElement): { label: string; value: string; hint: string }[] {
+  return [...root.querySelectorAll('.tiles .tile')].map((tile) => ({
+    label: tile.querySelector('.tile__label')?.textContent ?? '',
+    value: tile.querySelector('.tile__value')?.textContent ?? '',
+    hint: tile.querySelector('.tile__hint')?.textContent ?? '',
+  }));
+}
+
+describe('the whole-period tiles', () => {
+  /* 1.000 € per due giorni e 100 € per quasi tre mesi: 117,39 € di media
+   * pesata, 60 € di utile, 202,78% annuo. Le due cifre sono deliberatamente
+   * diverse fra loro e diverse da ogni figura della tabella, o due tasselli
+   * scambiati resterebbero verdi. */
+  const UNEVEN: Operation[] = [
+    op('2024-01-30', 'TRADING', 'BUY', { shares: '10', amount: '-1000.00' }),
+    op('2024-02-01', 'TRADING', 'SELL', { shares: '-10', amount: '1000.00' }),
+    op('2024-02-02', 'TRADING', 'BUY', { shares: '10', amount: '-100.00' }),
+    op('2024-04-30', 'TRADING', 'SELL', { shares: '-10', amount: '160.00' }),
+  ];
+
+  it('states the rate beside the capital it was taken on', () => {
+    // Il denominatore qui è il capitale a rischio, non il denaro versato: senza
+    // la base accanto, il lettore non ha modo di sapere per cosa è diviso.
+    expect(tiles(render('en', UNEVEN))).toEqual([
+      {
+        label: 'Average capital invested',
+        value: '€117.39',
+        hint: 'Averaged over the 92 days of the period, weekends included.',
+      },
+      {
+        label: 'Annual return',
+        value: '+202.78%',
+        hint: 'Profit over the average capital, scaled to 365 days. Simple scaling, not compounded.',
+      },
+    ]);
+  });
+
+  it('comes before the figure, where the printed page still has it', () => {
+    // Su carta il selettore sparisce; queste due cifre e la riga dell'anno sono
+    // ciò che resta a dichiarare di cosa parla la sezione.
+    const children = [...render('en', UNEVEN).children].map((child) => child.className);
+    expect(children.indexOf('tiles')).toBe(1);
+    expect(children.indexOf('tiles')).toBeLessThan(
+      children.findIndex((name) => name.includes('capital__year')),
+    );
+  });
+
+  it('withholds the rate on a history too short to annualise', () => {
+    const short = tiles(render('en', ACCOUNT))[1]!;
+    expect(short.value).toBe('—');
+    expect(short.hint).toBe('At least 90 days of history are needed to scale the result to a year.');
+  });
+
+  it('leaves the withheld rate uncoloured', () => {
+    // Un trattino verde direbbe che il periodo è andato bene.
+    const value = render('en', ACCOUNT).querySelectorAll('.tiles .tile__value')[1]!;
+    expect(value.className).toBe('tile__value');
+  });
+
+  it('says which of the two reasons withheld it', () => {
+    // Nessun capitale investito e storia troppo breve stampano lo stesso
+    // trattino: se la nota non li distingue, la cifra mancante è inspiegabile.
+    const cashOnly: Operation[] = [
+      op('2024-01-10', 'CASH', 'CUSTOMER_INBOUND', { amount: '1000.00' }),
+      op('2024-06-15', 'CASH', 'INTEREST_PAYMENT', { amount: '5.00' }),
+    ];
+    expect(tiles(render('en', cashOnly))[1]!.hint).toBe('No capital was invested in the period.');
+  });
+});
