@@ -65,8 +65,13 @@ export const fr: Messages = {
   'summary.netCapital': 'Capital net versé',
   'summary.netCapital.hint': 'Versements moins retraits.',
   'summary.return': 'Rendement du capital',
-  'summary.return.hint': 'Période entière, du {from} au {to}. Non annualisé.',
+  'summary.return.hint': 'Période entière, du {from} au {to}. Au total, pas par an.',
   'summary.returnUnavailable': 'Rendement indisponible : le capital net versé est nul.',
+  'summary.annualReturn': 'Rendement annuel',
+  'summary.annualReturn.hint':
+    'Taux de rendement interne : ce que chaque euro a rapporté en moyenne par an, pour le temps où il était réellement sur le compte. Les positions ouvertes sont valorisées au coût de revient et non aux prix de marché, le chiffre est donc prudent.',
+  'summary.annualReturn.unavailable':
+    'Un taux annuel demande au moins {days} jours d’historique et au moins un versement.',
   'summary.operationsRead': '{count} opérations lues',
   'summary.period': 'Période du {from} au {to}',
 
@@ -194,14 +199,9 @@ export const fr: Messages = {
     'Moyenne sur les {days} jours de la période, week-ends compris.',
   'capital.overallProfit': 'Résultat sur le capital',
   'capital.overallProfit.hint': '{period} du capital moyen, en {days} jours.',
-  'capital.annualReturn': 'Rendement annuel',
-  'capital.annualReturn.hint':
-    '{period} sur la période, ramené à 365 jours. Mise à l’échelle simple, sans capitalisation.',
-  'capital.annualReturn.tooShort':
-    'Il faut au moins {days} jours d’historique pour ramener le résultat à une année.',
-  'capital.annualReturn.unavailable': 'Aucun capital investi sur la période.',
+  'capital.noCapital': 'Aucun capital investi sur la période.',
   'capital.basis':
-    'Ces trois chiffres forment un seul calcul : achats-ventes et dividendes bruts, divisés par le capital réellement exposé, et le résultat ramené à une année. Le rendement du capital de la synthèse mesure autre chose — le résultat net de frais et de retenues, divisé par tout l’argent versé — les deux pourcentages ne se comparent donc pas.',
+    'Ces deux chiffres forment un seul calcul : achats-ventes et dividendes bruts, divisés par le capital réellement exposé. Le rendement du capital de la synthèse mesure autre chose — le résultat net de frais et de retenues, divisé par tout l’argent versé — les deux pourcentages ne se comparent donc pas. Il n’y a pas de taux annuel ici : il est dans la synthèse, où c’est un taux de rendement interne et non ce pourcentage divisé par les années.',
   'capital.figure': 'Capital et résultat, mois par mois',
   'capital.description':
     'Deux barres pour chaque mois : le coût des positions ouvertes, mesuré à la clôture de chaque journée et moyenné sur les jours du mois, week-ends compris, et à côté le résultat de négociation réalisé plus les dividendes du même mois. Le graphique montre une année à la fois ; le tableau les garde toutes, avec les jours sur lesquels chaque moyenne a été prise — le premier et le dernier mois sont partiels.',

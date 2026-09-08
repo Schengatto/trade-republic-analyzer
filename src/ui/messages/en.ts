@@ -64,8 +64,13 @@ export const en: Messages = {
   'summary.netCapital': 'Net capital paid in',
   'summary.netCapital.hint': 'Deposits minus withdrawals.',
   'summary.return': 'Return on capital',
-  'summary.return.hint': 'Whole period, {from} to {to}. Not annualised.',
+  'summary.return.hint': 'Whole period, {from} to {to}. In total, not per year.',
   'summary.returnUnavailable': 'Return not available: net capital paid in is zero.',
+  'summary.annualReturn': 'Annual return',
+  'summary.annualReturn.hint':
+    'Internal rate of return: what each euro earned per year on average, for the time it was actually in the account. Open positions are valued at carrying cost, not at market prices, so the figure is conservative.',
+  'summary.annualReturn.unavailable':
+    'An annual rate needs at least {days} days of history and at least one deposit.',
   'summary.operationsRead': '{count} operations read',
   'summary.period': 'Period from {from} to {to}',
 
@@ -190,14 +195,9 @@ export const en: Messages = {
   'capital.averageCapital.hint': 'Averaged over the {days} days of the period, weekends included.',
   'capital.overallProfit': 'Profit on the capital',
   'capital.overallProfit.hint': '{period} of the average capital, over {days} days.',
-  'capital.annualReturn': 'Annual return',
-  'capital.annualReturn.hint':
-    '{period} for the period, scaled to 365 days. Simple scaling, not compounded.',
-  'capital.annualReturn.tooShort':
-    'At least {days} days of history are needed to scale the result to a year.',
-  'capital.annualReturn.unavailable': 'No capital was invested in the period.',
+  'capital.noCapital': 'No capital was invested in the period.',
   'capital.basis':
-    'These three figures are one calculation: trades and dividends gross, divided by the capital that was actually at risk, and the result carried to a year. The return on capital in the summary measures something else — profit net of charges and taxes, divided by every euro paid in — so the two percentages are not comparable.',
+    'These two figures are one calculation: trades and dividends gross, divided by the capital that was actually at risk. The return on capital in the summary measures something else — profit net of charges and taxes, divided by every euro paid in — so the two percentages are not comparable. There is no annual rate here: it lives in the summary, where it is an internal rate of return and not this percentage divided by the years.',
   'capital.figure': 'Capital and result, month by month',
   'capital.description':
     'Two bars for each month: the cost of the open positions, measured at the close of each day and averaged over the days of the month, weekends included, and beside it the realized trading plus dividends for the same month. The chart shows one year at a time; the table lists them all, with the days each average was taken over — the first and last months are partial.',

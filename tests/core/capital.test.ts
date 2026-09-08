@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { MIN_ANNUALISED_DAYS, monthlyCapital, overallCapital } from '../../src/core/capital';
+import { monthlyCapital, overallCapital } from '../../src/core/capital';
 import { monthlyAggregates } from '../../src/core/analytics';
 import { calculate } from '../../src/core/fifo';
 import { ZERO } from '../../src/core/money';
@@ -167,44 +167,30 @@ describe('overallCapital', () => {
     expect(eur(overall.profit)).toBe('60.00');
   });
 
-  it('scales the period to a year without compounding it', () => {
-    // 60 € su 117,39 € sono il 51,11% in 92 giorni. Riportati a 365 giorni per
-    // scalatura semplice fanno 202,78%; capitalizzati ne farebbero 414,60, e
-    // senza riportarli resterebbero 51,11.
+  it('measures the period rate, and does not carry it to a year', () => {
+    // 60 € su 117,39 € sono il 51,11% in 92 giorni. Questa sezione si ferma
+    // qui: dividere per la durata darebbe 202,78% l'anno, e sarebbe una media
+    // aritmetica su un capitale entrato a scaglioni. Il tasso annuo è il TIR di
+    // `irr.ts`, e sta in Sintesi.
     const overall = overallOf(UNEVEN)!;
     expect(eur(overall.periodPercent!)).toBe('51.11');
-    expect(eur(overall.annualPercent!)).toBe('202.78');
+    expect(Object.keys(overall).sort()).toEqual([
+      'averageCapital',
+      'days',
+      'periodPercent',
+      'profit',
+    ]);
   });
 
-  it('scales the published period rate, so the printed step reconciles', () => {
-    // Il lettore vede le due percentuali una accanto all'altra e moltiplica:
-    // se l'annuo venisse da una seconda divisione, il passaggio stampato non
-    // tornerebbe alla cifra pubblicata.
-    const overall = overallOf(UNEVEN)!;
-    const scaled = overall.periodPercent!.times(365).div(overall.days);
-    expect(overall.annualPercent!.equals(scaled)).toBe(true);
-  });
-
-  it('annualises from the ninetieth day, and not from the eighty-ninth', () => {
-    // La soglia è inclusiva: senza il caso esatto, `>` e `>=` restano
-    // indistinguibili.
-    const until = (day: string): Operation[] => [
+  it('discounts the capital that left on the day of the sale', () => {
+    const overall = overallOf([
       op('2024-01-01', 'TRADING', 'BUY', { shares: '10', amount: '-1000.00' }),
-      op(day, 'TRADING', 'SELL', { shares: '-10', amount: '1100.00' }),
-    ];
-    const short = overallOf(until('2024-03-29'))!;
-    const exact = overallOf(until('2024-03-30'))!;
-    expect([short.days, exact.days]).toEqual([MIN_ANNUALISED_DAYS - 1, MIN_ANNUALISED_DAYS]);
-    expect(short.annualPercent).toBeNull();
-    expect(exact.annualPercent).not.toBeNull();
-    // Solo la scalatura è trattenuta: il rendimento del periodo è misurato, e
-    // sotto la soglia resta l'unica percentuale onesta da stampare.
-    // 100 € su 988,76 €: il giorno della vendita il capitale è già uscito, e
-    // la media pesata lo sconta.
-    expect(eur(short.periodPercent!)).toBe('10.11');
-    // Il tasso è trattenuto, il capitale no: è la cifra su cui il tasso manca.
-    expect(short.averageCapital.gt(0)).toBe(true);
-    expect(eur(short.profit)).toBe('100.00');
+      op('2024-03-29', 'TRADING', 'SELL', { shares: '-10', amount: '1100.00' }),
+    ])!;
+    // 100 € su 988,76 €, non su 1.000 €: il giorno della vendita il capitale è
+    // già uscito, e la media pesata sui giorni lo sconta.
+    expect(eur(overall.periodPercent!)).toBe('10.11');
+    expect(eur(overall.profit)).toBe('100.00');
   });
 
   it('states no rate where there was no capital, however long the history', () => {
@@ -212,26 +198,23 @@ describe('overallCapital', () => {
       op('2024-01-10', 'CASH', 'CUSTOMER_INBOUND', { amount: '1000.00' }),
       op('2024-06-15', 'CASH', 'INTEREST_PAYMENT', { amount: '5.00' }),
     ])!;
-    expect(overall.days).toBeGreaterThan(MIN_ANNUALISED_DAYS);
+    expect(overall.days).toBe(158);
     expect(eur(overall.averageCapital)).toBe('0.00');
     expect(overall.periodPercent).toBeNull();
-    expect(overall.annualPercent).toBeNull();
   });
 
   it('does not mistake arithmetic dust for capital, over the whole period either', () => {
     // Comprate e vendute nella stessa giornata, le tre quote non lasciano
     // capitale in nessun giorno della finestra: solo il residuo di 100/3, che
     // un gate su `.gt(0)` scambierebbe per capitale e userebbe come
-    // denominatore, stampando un rendimento annuo di molti milioni.
+    // denominatore, stampando un rendimento di molti milioni.
     const overall = overallOf([
       op('2024-01-10T09:00:00', 'TRADING', 'BUY', { shares: '3', amount: '-100.00' }),
       op('2024-01-10T15:00:00', 'TRADING', 'SELL', { shares: '-3', amount: '130.00' }),
       op('2024-06-15', 'CASH', 'DIVIDEND', { amount: '7.00' }),
     ])!;
-    expect(overall.days).toBeGreaterThan(MIN_ANNUALISED_DAYS);
     expect(eur(overall.averageCapital)).toBe('0.00');
     expect(overall.periodPercent).toBeNull();
-    expect(overall.annualPercent).toBeNull();
     expect(eur(overall.profit)).toBe('37.00');
   });
 

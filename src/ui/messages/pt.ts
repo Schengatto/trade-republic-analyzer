@@ -65,9 +65,14 @@ export const pt: Messages = {
   'summary.netCapital': 'Capital líquido depositado',
   'summary.netCapital.hint': 'Depósitos menos levantamentos.',
   'summary.return': 'Rendibilidade do capital',
-  'summary.return.hint': 'Todo o período, de {from} a {to}. Sem anualizar.',
+  'summary.return.hint': 'Todo o período, de {from} a {to}. No total, não ao ano.',
   'summary.returnUnavailable':
     'Rendibilidade indisponível: o capital líquido depositado é igual a zero.',
+  'summary.annualReturn': 'Rendibilidade anual',
+  'summary.annualReturn.hint':
+    'Taxa interna de rendibilidade: quanto rendeu em média por ano cada euro, pelo tempo em que esteve realmente na conta. As posições ainda abertas são valorizadas ao custo de aquisição e não a preços de mercado, pelo que o valor é prudente.',
+  'summary.annualReturn.unavailable':
+    'Uma taxa anual precisa de pelo menos {days} dias de histórico e de pelo menos um depósito.',
   'summary.operationsRead': '{count} operações lidas',
   'summary.period': 'Período de {from} a {to}',
 
@@ -193,14 +198,9 @@ export const pt: Messages = {
     'Média sobre os {days} dias do período, fins de semana incluídos.',
   'capital.overallProfit': 'Lucro sobre o capital',
   'capital.overallProfit.hint': '{period} do capital médio, em {days} dias.',
-  'capital.annualReturn': 'Rendibilidade anual',
-  'capital.annualReturn.hint':
-    '{period} do período, convertido para 365 dias. Escala simples, sem capitalização.',
-  'capital.annualReturn.tooShort':
-    'São precisos pelo menos {days} dias de histórico para converter o resultado para um ano.',
-  'capital.annualReturn.unavailable': 'No período não havia capital investido.',
+  'capital.noCapital': 'No período não havia capital investido.',
   'capital.basis':
-    'Estes três números são uma só conta: compras e vendas e dividendos em bruto, divididos pelo capital que esteve realmente em risco, e o resultado convertido para um ano. A rendibilidade sobre o capital no resumo mede outra coisa — lucro líquido de encargos e retenções, dividido por todo o dinheiro depositado — por isso as duas percentagens não são comparáveis.',
+    'Estes dois números são uma só conta: compras e vendas e dividendos em bruto, divididos pelo capital que esteve realmente em risco. A rendibilidade sobre o capital no resumo mede outra coisa — lucro líquido de encargos e retenções, dividido por todo o dinheiro depositado — por isso as duas percentagens não são comparáveis. Aqui não há uma taxa anual: está no resumo, onde é uma taxa interna de rendibilidade e não esta percentagem dividida pelos anos.',
   'capital.figure': 'Capital e resultado, mês a mês',
   'capital.description':
     'Duas barras para cada mês: o custo das posições abertas, medido no fecho de cada dia e calculado em média sobre os dias do mês, fins de semana incluídos, e ao lado a negociação realizada mais os dividendos do mesmo mês. O gráfico mostra um ano de cada vez; a tabela guarda-os todos, com os dias sobre os quais cada média foi tirada — o primeiro e o último mês são parciais.',

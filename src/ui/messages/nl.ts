@@ -65,9 +65,14 @@ export const nl: Messages = {
   'summary.netCapital': 'Netto gestort kapitaal',
   'summary.netCapital.hint': 'Stortingen minus opnames.',
   'summary.return': 'Rendement op kapitaal',
-  'summary.return.hint': 'Hele periode, {from} tot {to}. Niet op jaarbasis.',
+  'summary.return.hint': 'Hele periode, {from} tot {to}. In totaal, niet per jaar.',
   'summary.returnUnavailable':
     'Rendement niet beschikbaar: het netto gestorte kapitaal is nul.',
+  'summary.annualReturn': 'Jaarrendement',
+  'summary.annualReturn.hint':
+    'Interne rentabiliteit: wat elke euro gemiddeld per jaar heeft opgeleverd, over de tijd dat hij daadwerkelijk op de rekening stond. Open posities worden gewaardeerd tegen kostprijs, niet tegen marktprijs, dus het cijfer is voorzichtig.',
+  'summary.annualReturn.unavailable':
+    'Een jaarrendement vraagt minstens {days} dagen historie en minstens één storting.',
   'summary.operationsRead': '{count} transacties gelezen',
   'summary.period': 'Periode van {from} tot {to}',
 
@@ -194,14 +199,9 @@ export const nl: Messages = {
     'Gemiddeld over de {days} dagen van de periode, weekends inbegrepen.',
   'capital.overallProfit': 'Winst op het kapitaal',
   'capital.overallProfit.hint': '{period} van het gemiddelde kapitaal, in {days} dagen.',
-  'capital.annualReturn': 'Jaarrendement',
-  'capital.annualReturn.hint':
-    '{period} over de periode, omgerekend naar 365 dagen. Eenvoudige omrekening, zonder samengestelde interest.',
-  'capital.annualReturn.tooShort':
-    'Er zijn minstens {days} dagen historie nodig om het resultaat naar een jaar om te rekenen.',
-  'capital.annualReturn.unavailable': 'In de periode was er geen kapitaal geïnvesteerd.',
+  'capital.noCapital': 'In de periode was er geen kapitaal geïnvesteerd.',
   'capital.basis':
-    'Deze drie cijfers zijn één berekening: aan- en verkopen en dividenden bruto, gedeeld door het kapitaal dat werkelijk risico liep, en het resultaat omgerekend naar een jaar. Het rendement op kapitaal in de samenvatting meet iets anders — winst na kosten en belastingen, gedeeld door al het gestorte geld — de twee percentages zijn dus niet vergelijkbaar.',
+    'Deze twee cijfers zijn één berekening: aan- en verkopen en dividenden bruto, gedeeld door het kapitaal dat werkelijk risico liep. Het rendement op kapitaal in de samenvatting meet iets anders — winst na kosten en belastingen, gedeeld door al het gestorte geld — de twee percentages zijn dus niet vergelijkbaar. Hier staat geen jaarrendement: dat staat in de samenvatting, waar het een interne rentabiliteit is en niet dit percentage gedeeld door de jaren.',
   'capital.figure': 'Kapitaal en resultaat, maand voor maand',
   'capital.description':
     'Twee balken per maand: de kostprijs van de open posities, gemeten aan het eind van elke dag en gemiddeld over de dagen van de maand, weekends inbegrepen, en daarnaast het gerealiseerde handelsresultaat plus de dividenden van dezelfde maand. De grafiek toont één jaar tegelijk; de tabel houdt ze alle, met de dagen waarover elk gemiddelde is genomen — de eerste en de laatste maand zijn gedeeltelijk.',

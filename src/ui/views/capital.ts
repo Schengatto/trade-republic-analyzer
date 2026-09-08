@@ -18,7 +18,6 @@
  * sparisce, quindi l'anno disegnato lo dichiara la riga sopra la figura.
  */
 import {
-  MIN_ANNUALISED_DAYS,
   monthlyCapital,
   overallCapital,
   type MonthlyCapital,
@@ -188,17 +187,22 @@ export function capitalSection(context: ReportContext): HTMLElement | null {
 }
 
 /**
- * L'intero periodo in tre cifre che sono un conto, letto da sinistra a destra:
- * l'utile diviso il capitale medio fa il rendimento del periodo, e quello
- * riportato a 365 giorni fa il tasso annuo.
+ * L'intero periodo in due cifre che sono un conto: l'utile diviso il capitale
+ * medio fa il rendimento del periodo, stampato dentro il secondo tassello.
  *
- * Il tasso da solo non reggeva. Accanto al «rendimento sul capitale» della
- * Sintesi si legge come una contraddizione — un 44% annuo sotto un 46% su due
- * anni — perché le due cifre differiscono per tre cose insieme: il numeratore
- * (qui compravendite e dividendi lordi, là l'utile netto), il denominatore (qui
- * il capitale a rischio, là tutto il denaro versato) e la scalatura. Stampare
- * la cifra di mezzo rende visibile la terza; le altre due le dichiara la nota
- * sotto i tasselli. Senza, restano due percentuali inconciliabili.
+ * Un terzo tassello annualizzava quel rendimento dividendolo per gli anni. È
+ * stato scritto, stampato e respinto: accanto al «rendimento sul capitale»
+ * della Sintesi si leggeva come una contraddizione — un 44% annuo sotto un 46%
+ * su due anni — e la contraddizione era reale, perché quella scalatura ignora
+ * la capitalizzazione e prende per denominatore il capitale a rischio invece
+ * del portafoglio. Il tasso annuo ora è un TIR sui flussi datati e sta in
+ * Sintesi, accanto alla percentuale con cui il lettore lo confronterebbe
+ * comunque.
+ *
+ * Restano però due cifre che differiscono per numeratore (qui compravendite e
+ * dividendi lordi, là l'utile netto) e denominatore (qui il capitale a rischio,
+ * là tutto il denaro versato): lo dichiara la nota sotto i tasselli, o restano
+ * due percentuali inconciliabili.
  *
  * L'etichetta della prima è quella della legenda: è la stessa serie, misurata
  * una volta sull'intero periodo invece che mese per mese.
@@ -220,25 +224,8 @@ function wholePeriod(context: ReportContext, overall: OverallCapital): HTMLEleme
       signed: overall.profit,
       hint:
         period === null
-          ? t('capital.annualReturn.unavailable')
+          ? t('capital.noCapital')
           : t('capital.overallProfit.hint', { period, days: formatInteger(language, overall.days) }),
-    }),
-    statTile({
-      label: t('capital.annualReturn'),
-      value:
-        overall.annualPercent === null
-          ? NOTHING
-          : formatSignedPercent(language, overall.annualPercent),
-      hint:
-        period === null
-          ? t('capital.annualReturn.unavailable')
-          : overall.annualPercent === null
-            ? t('capital.annualReturn.tooShort', {
-                days: formatInteger(language, MIN_ANNUALISED_DAYS),
-              })
-            : t('capital.annualReturn.hint', { period }),
-      // Omesso nel ramo nullo, o il trattino prenderebbe un colore.
-      ...(overall.annualPercent === null ? {} : { signed: overall.annualPercent }),
     }),
   ]);
 }

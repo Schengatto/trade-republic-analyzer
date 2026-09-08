@@ -65,9 +65,14 @@ export const de: Messages = {
   'summary.netCapital': 'Netto eingezahltes Kapital',
   'summary.netCapital.hint': 'Einzahlungen abzüglich Auszahlungen.',
   'summary.return': 'Rendite auf das Kapital',
-  'summary.return.hint': 'Gesamter Zeitraum, {from} bis {to}. Nicht annualisiert.',
+  'summary.return.hint': 'Gesamter Zeitraum, {from} bis {to}. Insgesamt, nicht pro Jahr.',
   'summary.returnUnavailable':
     'Rendite nicht verfügbar: das netto eingezahlte Kapital ist null.',
+  'summary.annualReturn': 'Jahresrendite',
+  'summary.annualReturn.hint':
+    'Interner Zinsfuß: was jeder Euro im Schnitt pro Jahr erbracht hat, für die Zeit, in der er tatsächlich auf dem Konto lag. Offene Positionen werden zu Anschaffungskosten bewertet, nicht zu Marktpreisen, daher ist die Zahl vorsichtig.',
+  'summary.annualReturn.unavailable':
+    'Für eine Jahresrendite braucht es mindestens {days} Tage Historie und mindestens eine Einzahlung.',
   'summary.operationsRead': '{count} Buchungen gelesen',
   'summary.period': 'Zeitraum von {from} bis {to}',
 
@@ -194,14 +199,9 @@ export const de: Messages = {
     'Gemittelt über die {days} Tage des Zeitraums, Wochenenden eingeschlossen.',
   'capital.overallProfit': 'Gewinn auf das Kapital',
   'capital.overallProfit.hint': '{period} des durchschnittlichen Kapitals, in {days} Tagen.',
-  'capital.annualReturn': 'Jahresrendite',
-  'capital.annualReturn.hint':
-    '{period} im Zeitraum, auf 365 Tage hochgerechnet. Einfache Hochrechnung, ohne Zinseszins.',
-  'capital.annualReturn.tooShort':
-    'Für die Hochrechnung auf ein Jahr sind mindestens {days} Tage Historie nötig.',
-  'capital.annualReturn.unavailable': 'Im Zeitraum war kein Kapital investiert.',
+  'capital.noCapital': 'Im Zeitraum war kein Kapital investiert.',
   'capital.basis':
-    'Diese drei Zahlen sind eine einzige Rechnung: Handelsgeschäfte und Dividenden brutto, geteilt durch das Kapital, das tatsächlich im Risiko stand, und das Ergebnis auf ein Jahr hochgerechnet. Die Rendite auf das Kapital in der Übersicht misst etwas anderes — Gewinn nach Kosten und Steuern, geteilt durch alles eingezahlte Geld — die beiden Prozentsätze sind also nicht vergleichbar.',
+    'Diese zwei Zahlen sind eine einzige Rechnung: Handelsgeschäfte und Dividenden brutto, geteilt durch das Kapital, das tatsächlich im Risiko stand. Die Rendite auf das Kapital in der Übersicht misst etwas anderes — Gewinn nach Kosten und Steuern, geteilt durch alles eingezahlte Geld — die beiden Prozentsätze sind also nicht vergleichbar. Eine Jahresrendite steht hier nicht: sie steht in der Übersicht, dort als interner Zinsfuß und nicht als dieser Prozentsatz geteilt durch die Jahre.',
   'capital.figure': 'Kapital und Ergebnis, Monat für Monat',
   'capital.description':
     'Zwei Balken je Monat: die Kosten der offenen Positionen, am Ende jedes Tages gemessen und über die Tage des Monats gemittelt, Wochenenden eingeschlossen, und daneben die realisierten Handelsergebnisse samt Dividenden desselben Monats. Das Diagramm zeigt ein Jahr auf einmal; die Tabelle führt alle auf, mit den Tagen, über die jeweils gemittelt wurde — der erste und der letzte Monat sind unvollständig.',

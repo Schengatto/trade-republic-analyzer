@@ -38,20 +38,10 @@ export interface OverallCapital {
   profit: Decimal;
   /** `profit` su `averageCapital`, sui giorni che ci sono stati. `null` senza capitale. */
   periodPercent: Decimal | null;
-  /** `periodPercent` riportato a 365 giorni; `null` anche se la storia è troppo breve. */
-  annualPercent: Decimal | null;
 }
 
 const PERCENT = 100;
 const HALF_OF_THE_LAST_PRINTED_DIGIT = '0.005';
-const DAYS_IN_A_YEAR = 365;
-
-/**
- * Sotto questa soglia l'annualizzazione moltiplica il rumore, non il segnale:
- * tre settimane riportate a un anno vengono moltiplicate per diciassette, e il
- * risultato dice più sulla lunghezza del file che sull'operatività.
- */
-export const MIN_ANNUALISED_DAYS = 90;
 
 /**
  * Se la colonna del capitale stampa una cifra sopra zero.
@@ -133,8 +123,7 @@ export function monthlyCapital(
 }
 
 /**
- * Lo stesso rapporto dei mesi, misurato una volta sola sull'intero periodo e
- * riportato a un anno.
+ * Lo stesso rapporto dei mesi, misurato una volta sola sull'intero periodo.
  *
  * Il capitale medio è pesato sui giorni, non sui mesi: è la somma esatta della
  * camminata divisa per i giorni percorsi, mai la media delle medie mensili, che
@@ -142,19 +131,16 @@ export function monthlyCapital(
  * Ricostruirlo da `averageCapital × days` dei mesi reintrodurrebbe per ogni
  * riga il resto della divisione che l'ha prodotto.
  *
- * L'annualizzazione è una scalatura semplice, non geometrica: il denominatore è
- * misurato direttamente ogni giorno, quindi non c'è una base da capitalizzare —
- * comporre implicherebbe un reinvestimento che la media giornaliera già
- * contiene. È anche il motivo per cui questo numero si può annualizzare mentre
- * `returnOnCapital` no: là il denominatore è tutto il denaro mai versato, che
- * non è mai stato sul conto per l'intero periodo.
+ * Qui non si annualizza niente, e la ragione è più forte di quanto sembri: la
+ * versione che divideva `periodPercent` per gli anni è stata scritta, stampata
+ * e respinta dall'utente. Diceva 41% dove il portafoglio ha reso 28,50%, e
+ * sbagliava due volte insieme — media aritmetica dove ne serve una geometrica,
+ * e un denominatore (il capitale a rischio) che non è il portafoglio. Il
+ * rendimento annuo è un TIR sui flussi datati e vive in `irr.ts`.
  *
- * `periodPercent` è pubblicato accanto ad `annualPercent`, e non tenuto come
- * passaggio interno, perché è il solo modo che il lettore ha di rifare il
- * conto: un tasso annuo da solo, accanto al rendimento sul capitale della
- * Sintesi, si legge come una contraddizione — le due cifre differiscono di
- * numeratore, di denominatore *e* di scalatura, e senza la cifra di mezzo non
- * c'è aritmetica che le riconcili.
+ * `periodPercent` resta pubblicato perché il lettore possa rifare il conto: è
+ * `profit` diviso `averageCapital`, e senza la cifra di mezzo i due tasselli
+ * accanto sarebbero due numeri senza rapporto visibile.
  */
 export function overallCapital(
   operations: readonly Operation[],
@@ -187,12 +173,5 @@ export function overallCapital(
     days,
     profit,
     periodPercent,
-    // Scalato dalla cifra pubblicata, non da una seconda divisione: il tasso
-    // annuo deve essere esattamente il numero che la pagina mostra riportato a
-    // 365 giorni, o il passaggio stampato non tornerebbe.
-    annualPercent:
-      periodPercent !== null && days >= MIN_ANNUALISED_DAYS
-        ? periodPercent.times(DAYS_IN_A_YEAR).div(days)
-        : null,
   };
 }

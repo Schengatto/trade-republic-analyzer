@@ -204,9 +204,9 @@ function tiles(root: HTMLElement): { label: string; value: string; hint: string 
 
 describe('the whole-period tiles', () => {
   /* 1.000 € per due giorni e 100 € per quasi tre mesi: 117,39 € di media
-   * pesata, 60 € di utile, 202,78% annuo. Le due cifre sono deliberatamente
-   * diverse fra loro e diverse da ogni figura della tabella, o due tasselli
-   * scambiati resterebbero verdi. */
+   * pesata e 60 € di utile. Le due cifre sono deliberatamente diverse fra loro
+   * e diverse da ogni figura della tabella, o due tasselli scambiati
+   * resterebbero verdi. */
   const UNEVEN: Operation[] = [
     op('2024-01-30', 'TRADING', 'BUY', { shares: '10', amount: '-1000.00' }),
     op('2024-02-01', 'TRADING', 'SELL', { shares: '-10', amount: '1000.00' }),
@@ -214,10 +214,11 @@ describe('the whole-period tiles', () => {
     op('2024-04-30', 'TRADING', 'SELL', { shares: '-10', amount: '160.00' }),
   ];
 
-  it('prints the whole calculation, not just its result', () => {
-    // Un tasso annuo da solo, accanto al rendimento sul capitale della Sintesi,
-    // si legge come una contraddizione: servono la base, l'utile e la
-    // percentuale del periodo perché il lettore possa rifare il conto.
+  it('prints the calculation, not just its result', () => {
+    // La base e l'utile stanno accanto alla percentuale che li lega, perché il
+    // lettore possa rifare il conto. Il terzo tassello, che divideva quel 51,11%
+    // per la durata, è stato tolto: quella scalatura ignora la
+    // capitalizzazione, e il tasso annuo è ora il TIR stampato in Sintesi.
     expect(tiles(render('en', UNEVEN))).toEqual([
       {
         label: 'Average capital invested',
@@ -228,11 +229,6 @@ describe('the whole-period tiles', () => {
         label: 'Profit on the capital',
         value: '+€60.00',
         hint: '+51.11% of the average capital, over 92 days.',
-      },
-      {
-        label: 'Annual return',
-        value: '+202.78%',
-        hint: '+51.11% for the period, scaled to 365 days. Simple scaling, not compounded.',
       },
     ]);
   });
@@ -251,31 +247,25 @@ describe('the whole-period tiles', () => {
     );
   });
 
-  it('withholds the rate on a history too short to annualise', () => {
-    const short = tiles(render('en', ACCOUNT))[2]!;
-    expect(short.value).toBe('—');
-    expect(short.hint).toBe('At least 90 days of history are needed to scale the result to a year.');
-    // Solo la scalatura manca: il rendimento del periodo è misurato e resta.
-    expect(tiles(render('en', ACCOUNT))[1]!.hint).toContain('%');
+  it('carries no annual rate of its own', () => {
+    // Il tasso annuo vive in Sintesi, accanto alla percentuale con cui il
+    // lettore lo confronterebbe comunque. Due tasselli qui, e nessuna copia.
+    const section = render('en', UNEVEN);
+    expect(tiles(section)).toHaveLength(2);
+    expect(section.textContent).not.toContain('Annual return');
+    // E la nota deve mandarcelo, o la cifra sembra sparita.
+    expect(section.querySelector('.note')!.textContent).toContain('internal rate of return');
   });
 
-  it('leaves the withheld rate uncoloured', () => {
-    // Un trattino verde direbbe che il periodo è andato bene.
-    const value = render('en', ACCOUNT).querySelectorAll('.tiles .tile__value')[2]!;
-    expect(value.className).toBe('tile__value');
-  });
-
-  it('says which of the two reasons withheld it', () => {
-    // Nessun capitale investito e storia troppo breve stampano lo stesso
-    // trattino: se la nota non li distingue, la cifra mancante è inspiegabile.
+  it('says why the percentage is missing when there was no capital', () => {
+    // Senza denominatore non c'è percentuale del periodo: il tassello deve dire
+    // perché, non stampare una divisione per zero.
     const cashOnly: Operation[] = [
       op('2024-01-10', 'CASH', 'CUSTOMER_INBOUND', { amount: '1000.00' }),
       op('2024-06-15', 'CASH', 'INTEREST_PAYMENT', { amount: '5.00' }),
     ];
-    const withoutCapital = tiles(render('en', cashOnly));
-    expect(withoutCapital[2]!.hint).toBe('No capital was invested in the period.');
-    // Senza denominatore non c'è nemmeno la percentuale del periodo: il
-    // tassello di mezzo deve dire la stessa cosa, non una divisione per zero.
-    expect(withoutCapital[1]!.hint).toBe('No capital was invested in the period.');
+    expect(tiles(render('en', cashOnly))[1]!.hint).toBe(
+      'No capital was invested in the period.',
+    );
   });
 });

@@ -78,8 +78,13 @@ export const it = {
   'summary.netCapital': 'Capitale netto versato',
   'summary.netCapital.hint': 'Versamenti meno prelievi.',
   'summary.return': 'Rendimento sul capitale',
-  'summary.return.hint': 'Intero periodo, da {from} a {to}. Non annualizzato.',
+  'summary.return.hint': 'Intero periodo, da {from} a {to}. In totale, non all’anno.',
   'summary.returnUnavailable': 'Rendimento non calcolabile: capitale netto versato pari a zero.',
+  'summary.annualReturn': 'Rendimento annuo',
+  'summary.annualReturn.hint':
+    'Tasso interno di rendimento: quanto ha reso in media all’anno ogni euro, per il tempo in cui è stato davvero sul conto. Le posizioni ancora aperte valgono il costo di carico, non il prezzo di mercato, quindi la cifra è prudente.',
+  'summary.annualReturn.unavailable':
+    'Servono almeno {days} giorni di storia e almeno un versamento per misurare un tasso annuo.',
   'summary.operationsRead': '{count} operazioni lette',
   'summary.period': 'Periodo da {from} a {to}',
 
@@ -218,14 +223,9 @@ export const it = {
   'capital.averageCapital.hint': 'Media sui {days} giorni del periodo, weekend compresi.',
   'capital.overallProfit': 'Utile sul capitale',
   'capital.overallProfit.hint': '{period} del capitale medio, in {days} giorni.',
-  'capital.annualReturn': 'Rendimento annuo',
-  'capital.annualReturn.hint':
-    '{period} del periodo, riportato a 365 giorni. Scalatura semplice, senza capitalizzazione.',
-  'capital.annualReturn.tooShort':
-    'Servono almeno {days} giorni di storia per riportare il risultato a un anno.',
-  'capital.annualReturn.unavailable': 'Nel periodo non c’era capitale investito.',
+  'capital.noCapital': 'Nel periodo non c’era capitale investito.',
   'capital.basis':
-    'Queste tre cifre sono un conto solo: compravendite e dividendi al lordo, divisi per il capitale che era davvero a rischio, e il risultato riportato a un anno. Il rendimento sul capitale in Sintesi misura un’altra cosa — l’utile netto di oneri e ritenute, diviso per tutto il denaro versato — quindi le due percentuali non si confrontano.',
+    'Queste due cifre sono un conto solo: compravendite e dividendi al lordo, divisi per il capitale che era davvero a rischio. Il rendimento sul capitale in Sintesi misura un’altra cosa — l’utile netto di oneri e ritenute, diviso per tutto il denaro versato — quindi le due percentuali non si confrontano. Qui non c’è un tasso annuo: sta in Sintesi, dove è un tasso interno di rendimento e non questa percentuale divisa per gli anni.',
   'capital.figure': 'Capitale e risultato, mese per mese',
   'capital.description':
     'Per ogni mese due barre: il costo delle posizioni aperte, misurato a fine di ogni giornata e mediato sui giorni del mese weekend compresi, e accanto le compravendite realizzate più i dividendi dello stesso mese. Il grafico mostra un anno per volta; la tabella li elenca tutti, con i giorni su cui ogni media è stata presa — il primo e l’ultimo mese sono parziali.',

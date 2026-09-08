@@ -21,9 +21,10 @@ function tiles(rendered: HTMLElement) {
 }
 
 describe('summarySection', () => {
-  it('carries the return as a headline figure, last of five', () => {
-    // It used to be grey hint text under the capital, where a reader looking
-    // for the result of the account had to find it by accident.
+  it('carries the return and its annual rate as headline figures', () => {
+    // The return used to be grey hint text under the capital, where a reader
+    // looking for the result of the account had to find it by accident. The
+    // annual rate sits beside it because that is where it gets compared.
     const rendered = summarySection(contextFor('it'));
 
     expect(tiles(rendered).map((tile) => tile.label)).toEqual([
@@ -32,6 +33,7 @@ describe('summarySection', () => {
       'Oneri totali',
       'Capitale netto versato',
       'Rendimento sul capitale',
+      'Rendimento annuo',
     ]);
   });
 
@@ -47,7 +49,24 @@ describe('summarySection', () => {
     expect(period).not.toBeNull();
     expect(ret!.hint).toContain(period![1]!);
     expect(ret!.hint).toContain(period![2]!);
-    expect(ret!.hint).toContain('Non annualizzato');
+    expect(ret!.hint).toContain('In totale, non all’anno');
+  });
+
+  it('takes the annual rate from the dated flows', () => {
+    // 1.000 € versati e 90 giorni di storia, cioè la soglia esatta: questo caso
+    // tiene anche il cancello. La cifra è quella che il TIR produce su questi
+    // flussi, e non un'altra: dividere il 2,19% del periodo per 0,247 anni ne
+    // darebbe 8,88%. Che la scalatura sbagli *poco* su un trimestre non la
+    // rende giusta — su due anni sbaglia del 45%, ed è quello che i test di
+    // `core/irr` misurano.
+    const [, , , , , annual] = tiles(summarySection(contextFor('it')));
+
+    expect(annual!.value).toBe('9,19%');
+    expect(annual!.classes).toBe('tile__value is-positive');
+    expect(annual!.hint).toContain('Tasso interno di rendimento');
+    // Il limite del costo di carico va detto, o la cifra sembra una misura del
+    // valore di mercato che il report non ha.
+    expect(annual!.hint).toContain('costo di carico');
   });
 
   it('colours the return by its sign', () => {
@@ -70,5 +89,16 @@ describe('summarySection', () => {
     expect(ret!.value).toBe('—');
     expect(ret!.classes).toBe('tile__value');
     expect(ret!.hint).toContain('capitale netto versato pari a zero');
+  });
+
+  it('withholds the annual rate, uncoloured, and names the two conditions', () => {
+    // Un trattino verde direbbe che l'anno è andato bene.
+    const [, , , , , annual] = tiles(summarySection(contextFor('it', NO_CAPITAL)));
+
+    expect(annual!.value).toBe('—');
+    expect(annual!.classes).toBe('tile__value');
+    expect(annual!.hint).toBe(
+      'Servono almeno 90 giorni di storia e almeno un versamento per misurare un tasso annuo.',
+    );
   });
 });

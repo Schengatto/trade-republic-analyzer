@@ -1,6 +1,7 @@
-/** Spec §6.1 — the five headline figures. */
+/** Spec §6.1 — the headline figures. */
 
 import { returnOnCapital, windowSummaries } from '../../core/analytics';
+import { MIN_IRR_DAYS, annualReturn } from '../../core/irr';
 import { el } from '../dom';
 import { formatCurrency, formatDate, formatInteger, formatPercent, formatSignedCurrency } from '../format';
 import { NOTHING, section, statTile, type ReportContext } from './common';
@@ -9,12 +10,13 @@ export function summarySection(context: ReportContext): HTMLElement {
   const { report, language, t } = context;
   const wholePeriod = windowSummaries(context.operations, report)[0];
   const percent = returnOnCapital(report);
+  const annual = annualReturn(context.operations, report);
 
   // The return is a headline figure, not a footnote under the capital: a reader
   // who sees a percentage assumes a year, so the tile has to name the period it
-  // actually covers. There is no annualised version, and deliberately so — the
-  // capital was paid in progressively, so scaling the result to twelve months
-  // would divide by a base that was never there for twelve months.
+  // actually covers. Its annual companion is the tile beside it, and it is an
+  // internal rate of return rather than this figure divided by the years: the
+  // capital was paid in progressively, so there is no single base to divide.
   const returnHint =
     percent === null
       ? t('summary.returnUnavailable')
@@ -63,6 +65,18 @@ export function summarySection(context: ReportContext): HTMLElement {
         value: percent === null ? NOTHING : formatPercent(language, percent),
         ...(returnHint === '' ? {} : { hint: returnHint }),
         ...(percent === null ? {} : { signed: percent }),
+      }),
+      statTile({
+        label: t('summary.annualReturn'),
+        value: annual === null ? NOTHING : formatPercent(language, annual),
+        hint:
+          annual === null
+            ? t('summary.annualReturn.unavailable', {
+                days: formatInteger(language, MIN_IRR_DAYS),
+              })
+            : t('summary.annualReturn.hint'),
+        // Omesso nel ramo nullo, o il trattino prenderebbe un colore.
+        ...(annual === null ? {} : { signed: annual }),
       }),
     ]),
     // The one section that answers the question the reader opened the file
