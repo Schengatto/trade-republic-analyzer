@@ -91,6 +91,55 @@ export function setback(points: readonly SeriesPoint[]): Setback | null {
   return { drawdown, troughDate, worstDay: worstDay.negated(), worstDayDate };
 }
 
+export interface Advance {
+  /** Largest trough-to-peak rise of the cumulative net profit, as a positive amount. */
+  runUp: Decimal;
+  /** The day the highest rise topped out. */
+  peakDate: string;
+  /** The best single day's contribution, as a positive amount. */
+  bestDay: Decimal;
+  /** The day that contributed it. */
+  bestDayDate: string;
+}
+
+/**
+ * How far the cumulative profit climbed, and the best single day inside it.
+ *
+ * The mirror of `setback`, written out rather than folded into it: one function
+ * taking a sign would spend every line deciding which way it is facing, and the
+ * two are read side by side as a pair.
+ *
+ * The running trough starts at zero for the same reason the peak does: an
+ * account that only ever gains has climbed from the zero it opened at.
+ */
+export function advance(points: readonly SeriesPoint[]): Advance | null {
+  let trough = ZERO;
+  let runUp = ZERO;
+  let peakDate = '';
+  let bestDay = ZERO;
+  let bestDayDate = '';
+
+  for (const point of points) {
+    if (point.net.lessThan(trough)) trough = point.net;
+    const rise = point.net.minus(trough);
+    if (rise.greaterThan(runUp)) {
+      runUp = rise;
+      peakDate = point.date;
+    }
+    if (point.dayProfit.greaterThan(bestDay)) {
+      bestDay = point.dayProfit;
+      bestDayDate = point.date;
+    }
+  }
+
+  // Both dates are set together or not at all, and `bestDay` needs no guard
+  // against a "best" that is really the least bad: seeded at zero, it only
+  // moves for a day that actually added something, and such a day always
+  // leaves the curve above the trough it had just been at.
+  if (peakDate === '') return null;
+  return { runUp, peakDate, bestDay, bestDayDate };
+}
+
 // --- date helpers ---------------------------------------------------------
 
 /**

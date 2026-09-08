@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { calculate } from '../../src/core/fifo';
 import {
   WINDOW_KEYS,
+  advance,
   anchorDate,
   costDrag,
   holdingDuration,
@@ -71,20 +72,20 @@ describe('timeSeries', () => {
   });
 });
 
-describe('setback', () => {
-  /** One 100-euro lot per symbol, so a sale's proceeds are its profit plus 100. */
-  const account = (sold: [date: string, symbol: string, proceeds: string][]) =>
-    timeSeries(
-      calculate([
-        ...sold.map(([, symbol]) =>
-          op('2024-01-01', 'TRADING', 'BUY', { shares: '10', amount: '-100.00', symbol }),
-        ),
-        ...sold.map(([date, symbol, proceeds]) =>
-          op(date, 'TRADING', 'SELL', { shares: '-10', amount: proceeds, symbol }),
-        ),
-      ]),
-    );
+/** One 100-euro lot per symbol, so a sale's proceeds are its profit plus 100. */
+const account = (sold: [date: string, symbol: string, proceeds: string][]) =>
+  timeSeries(
+    calculate([
+      ...sold.map(([, symbol]) =>
+        op('2024-01-01', 'TRADING', 'BUY', { shares: '10', amount: '-100.00', symbol }),
+      ),
+      ...sold.map(([date, symbol, proceeds]) =>
+        op(date, 'TRADING', 'SELL', { shares: '-10', amount: proceeds, symbol }),
+      ),
+    ]),
+  );
 
+describe('setback', () => {
   it('has nothing to report about an empty series', () => {
     expect(setback([])).toBeNull();
   });
@@ -159,6 +160,93 @@ describe('setback', () => {
 
     expect(fall.worstDay.isNegative()).toBe(false);
     expect(fall.worstDay.toFixed(2)).toBe('40.00');
+  });
+});
+
+describe('advance', () => {
+  it('has nothing to report about an empty series', () => {
+    expect(advance([])).toBeNull();
+  });
+
+  it('is null for a curve that only ever fell', () => {
+    const points = account([
+      ['2024-02-01', 'AAA', '50.00'], // -50, net -50
+      ['2024-03-01', 'BBB', '70.00'], // -30, net -80
+    ]);
+
+    expect(points.map((p) => p.net.toFixed(2))).toEqual(['-50.00', '-80.00']);
+    expect(advance(points)).toBeNull();
+  });
+
+  it('measures the rise from the trough, not from zero', () => {
+    const points = account([
+      ['2024-02-01', 'AAA', '40.00'], //  -60, net -60
+      ['2024-03-01', 'BBB', '200.00'], // +100, net 40
+      ['2024-04-01', 'CCC', '70.00'], //  -30, net 10
+    ]);
+    const rise = advance(points)!;
+
+    // 100, not the 40 the barely-positive net would suggest.
+    expect(rise.runUp.toFixed(2)).toBe('100.00');
+    expect(rise.peakDate).toBe('2024-03-01');
+  });
+
+  it('starts the trough at zero, so an account that only gained has still risen', () => {
+    // The first point is already positive. Seeding the trough with it would make
+    // the curve start at its own floor and report no rise at all.
+    const points = account([['2024-02-01', 'AAA', '140.00']]);
+    const rise = advance(points)!;
+
+    expect(points[0]!.net.toFixed(2)).toBe('40.00');
+    expect(rise.runUp.toFixed(2)).toBe('40.00');
+    expect(rise.peakDate).toBe('2024-02-01');
+    expect(rise.bestDay.toFixed(2)).toBe('40.00');
+  });
+
+  it('keeps the highest rise when a later climb tops out lower', () => {
+    const points = account([
+      ['2024-02-01', 'AAA', '40.00'], //  -60, net -60
+      ['2024-03-01', 'BBB', '200.00'], // +100, net 40
+      ['2024-04-01', 'CCC', '50.00'], //  -50, net -10
+      ['2024-05-01', 'DDD', '120.00'], // +20, net 10
+    ]);
+    const rise = advance(points)!;
+
+    // The second climb is the more recent, but it only reaches 10 from a floor
+    // of -60: 70, against the 100 the first one covered.
+    expect(rise.runUp.toFixed(2)).toBe('100.00');
+    expect(rise.peakDate).toBe('2024-03-01');
+  });
+
+  it('reports the best single day separately from the peak', () => {
+    // Two consecutive gaining days: the peak is the second, the best day the
+    // first. One field cannot answer both questions.
+    const points = account([
+      ['2024-02-01', 'AAA', '40.00'], //  -60, net -60
+      ['2024-03-01', 'BBB', '200.00'], // +100, net 40
+      ['2024-04-01', 'CCC', '130.00'], // +30, net 70
+    ]);
+    const rise = advance(points)!;
+
+    expect(rise.runUp.toFixed(2)).toBe('130.00');
+    expect(rise.peakDate).toBe('2024-04-01');
+    expect(rise.bestDay.toFixed(2)).toBe('100.00');
+    expect(rise.bestDayDate).toBe('2024-03-01');
+  });
+
+  it('finds the rebound inside a history that never came back to profit', () => {
+    // The zero the trough is seeded with must not hide a climb that happens
+    // entirely below it: 20 recovered off the floor is still 20 recovered.
+    const points = account([
+      ['2024-02-01', 'AAA', '50.00'], // -50, net -50
+      ['2024-03-01', 'BBB', '70.00'], // -30, net -80
+      ['2024-04-01', 'CCC', '120.00'], // +20, net -60
+    ]);
+    const rise = advance(points)!;
+
+    expect(rise.runUp.toFixed(2)).toBe('20.00');
+    expect(rise.peakDate).toBe('2024-04-01');
+    expect(rise.bestDay.toFixed(2)).toBe('20.00');
   });
 });
 

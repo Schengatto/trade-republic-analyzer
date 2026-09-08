@@ -5,7 +5,7 @@
  * reason a second axis is never offered here.
  */
 
-import { setback, timeSeries } from '../../core/analytics';
+import { advance, setback, timeSeries } from '../../core/analytics';
 import { el } from '../dom';
 import { figure } from '../chart/figure';
 import { dayNumber } from '../chart/geometry';
@@ -18,6 +18,7 @@ export function trendSection(context: ReportContext): HTMLElement {
   const { report, language, t } = context;
   const points = timeSeries(report);
   const fall = setback(points);
+  const rise = advance(points);
 
   const series = [
     { key: 'net', label: t('trend.series.net'), color: SERIES_1, values: points.map((point) => point.net.toNumber()) },
@@ -30,21 +31,40 @@ export function trendSection(context: ReportContext): HTMLElement {
   ];
 
   return section('trend', t('trend.heading'), [
-    // Both are sizes of a fall, so both print unsigned and uncoloured: a red
-    // minus in front of a figure already labelled "drawdown" says it twice, and
-    // the two tiles travel together so no column mixes them with a gain.
-    fall !== null &&
+    // Each figure is a size, and its label already says which way it points, so
+    // all four print unsigned and uncoloured: a red minus in front of a figure
+    // labelled "drawdown" says it twice, and a green one under "best day"
+    // would be the only place on the page where a colour means nothing.
+    //
+    // Fall and rise are paired across, not down: the two amounts sit side by
+    // side and the two single days below them, so the comparable figures are
+    // adjacent and a narrow screen breaks the row into those same pairs.
+    (fall !== null || rise !== null) &&
       el('div', { class: 'tiles' }, [
-        statTile({
-          label: t('trend.drawdown'),
-          value: formatCurrency(language, fall.drawdown),
-          hint: t('trend.drawdown.hint', { date: formatDate(language, fall.troughDate) }),
-        }),
-        statTile({
-          label: t('trend.worstDay'),
-          value: formatCurrency(language, fall.worstDay),
-          hint: t('trend.worstDay.hint', { date: formatDate(language, fall.worstDayDate) }),
-        }),
+        fall !== null &&
+          statTile({
+            label: t('trend.drawdown'),
+            value: formatCurrency(language, fall.drawdown),
+            hint: t('trend.drawdown.hint', { date: formatDate(language, fall.troughDate) }),
+          }),
+        rise !== null &&
+          statTile({
+            label: t('trend.runUp'),
+            value: formatCurrency(language, rise.runUp),
+            hint: t('trend.runUp.hint', { date: formatDate(language, rise.peakDate) }),
+          }),
+        fall !== null &&
+          statTile({
+            label: t('trend.worstDay'),
+            value: formatCurrency(language, fall.worstDay),
+            hint: t('trend.worstDay.hint', { date: formatDate(language, fall.worstDayDate) }),
+          }),
+        rise !== null &&
+          statTile({
+            label: t('trend.bestDay'),
+            value: formatCurrency(language, rise.bestDay),
+            hint: t('trend.bestDay.hint', { date: formatDate(language, rise.bestDayDate) }),
+          }),
       ]),
     figure({
       t,

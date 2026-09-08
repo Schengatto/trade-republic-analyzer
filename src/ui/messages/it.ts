@@ -97,8 +97,12 @@ export const it = {
   'trend.column.dayProfit': 'Variazione del giorno',
   'trend.drawdown': 'Discesa massima',
   'trend.drawdown.hint': 'Dal picco precedente, minimo toccato il {date}.',
+  'trend.runUp': 'Salita massima',
+  'trend.runUp.hint': 'Dal minimo precedente, massimo toccato il {date}.',
   'trend.worstDay': 'Giorno peggiore',
   'trend.worstDay.hint': 'Perdita registrata il {date}.',
+  'trend.bestDay': 'Giorno migliore',
+  'trend.bestDay.hint': 'Utile registrato il {date}.',
 
   'composition.heading': 'Composizione del risultato',
   'composition.grossProfit': 'Utile lordo',

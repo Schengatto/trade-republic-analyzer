@@ -84,8 +84,12 @@ export const pt: Messages = {
   'trend.column.dayProfit': 'Variação do dia',
   'trend.drawdown': 'Maior queda',
   'trend.drawdown.hint': 'Desde o máximo anterior, com mínimo a {date}.',
+  'trend.runUp': 'Maior subida',
+  'trend.runUp.hint': 'Desde o mínimo anterior, com máximo a {date}.',
   'trend.worstDay': 'Pior dia',
   'trend.worstDay.hint': 'Perda registada a {date}.',
+  'trend.bestDay': 'Melhor dia',
+  'trend.bestDay.hint': 'Ganho registado a {date}.',
 
   'composition.heading': 'Como se compõe o resultado',
   'composition.grossProfit': 'Lucro bruto',
