@@ -84,6 +84,10 @@ export const es: Messages = {
   'trend.column.dayProfit': 'Variación del día',
   'trend.drawdown': 'Mayor caída',
   'trend.drawdown.hint': 'Desde el máximo anterior, con mínimo el {date}.',
+  'trend.drawdown.hint.recovered':
+    'Del máximo del {peak} al mínimo del {trough}: {days}. Recuperada el {recovery}.',
+  'trend.drawdown.hint.open':
+    'Del máximo del {peak} al mínimo del {trough}: {days}, aún no recuperada.',
   'trend.runUp': 'Mayor subida',
   'trend.runUp.hint': 'Desde el mínimo anterior, con máximo el {date}.',
   'trend.worstDay': 'Peor día',

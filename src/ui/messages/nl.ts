@@ -84,6 +84,10 @@ export const nl: Messages = {
   'trend.column.dayProfit': 'Verandering op de dag',
   'trend.drawdown': 'Grootste terugval',
   'trend.drawdown.hint': 'Vanaf de vorige top, dieptepunt op {date}.',
+  'trend.drawdown.hint.recovered':
+    'Van de top op {peak} tot het dieptepunt op {trough}: {days}. Hersteld op {recovery}.',
+  'trend.drawdown.hint.open':
+    'Van de top op {peak} tot het dieptepunt op {trough}: {days}, nog niet hersteld.',
   'trend.runUp': 'Grootste stijging',
   'trend.runUp.hint': 'Vanaf het vorige dieptepunt, hoogtepunt op {date}.',
   'trend.worstDay': 'Slechtste dag',

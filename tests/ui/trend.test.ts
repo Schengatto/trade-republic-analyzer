@@ -25,6 +25,18 @@ const DIPS = [
   op('2024-05-01T09:00:00Z', 'TRADING', 'SELL', { shares: '-1', amount: '160', symbol: 'DDD' }),
 ];
 
+/**
+ * A fall the curve never climbs back out of, one day after the peak: net 100 on
+ * 02-01, then 40 on 02-02 and nothing after it.
+ */
+const UNRECOVERED = [
+  ...['AAA', 'BBB'].map((symbol) =>
+    op('2024-01-01T09:00:00Z', 'TRADING', 'BUY', { shares: '1', amount: '-100', symbol }),
+  ),
+  op('2024-02-01T09:00:00Z', 'TRADING', 'SELL', { shares: '-1', amount: '200', symbol: 'AAA' }),
+  op('2024-02-02T09:00:00Z', 'TRADING', 'SELL', { shares: '-1', amount: '40', symbol: 'BBB' }),
+];
+
 /** Never falls: no fee on the buy, and the one sale is a gain. */
 const ONLY_RISES = [
   op('2024-01-01T09:00:00Z', 'TRADING', 'BUY', { shares: '1', amount: '-100' }),
@@ -70,6 +82,35 @@ describe('trendSection', () => {
     // 100 down to 50, while the account is still 50 in profit.
     expect(drawdown!.value).toBe(formatCurrency('it', dec('50')));
     expect(drawdown!.hint).toContain(formatDate('it', '2024-04-01'));
+  });
+
+  it('says how long the fall lasted and when it was made good', () => {
+    const [drawdown] = tiles(trendSection(contextFor('it', DIPS)));
+
+    // Written out whole: the two dates are the peak and the trough in that
+    // order, and a sentence that named them the other way round would still
+    // contain both.
+    expect(drawdown!.hint).toBe(
+      `Dal picco del ${formatDate('it', '2024-02-01')} al minimo del ${formatDate('it', '2024-04-01')}: 60 giorni. Recuperata il ${formatDate('it', '2024-05-01')}.`,
+    );
+  });
+
+  it('says the fall is still on when the curve never regained the peak', () => {
+    const [drawdown] = tiles(trendSection(contextFor('it', UNRECOVERED)));
+
+    expect(drawdown!.hint).toBe(
+      `Dal picco del ${formatDate('it', '2024-02-01')} al minimo del ${formatDate('it', '2024-02-02')}: 1 giorno, non ancora recuperata.`,
+    );
+  });
+
+  it('names only the trough when the fall started from the account’s zero', () => {
+    // No day carried that peak, so there is no span to state: the sentence is
+    // the one the tile printed before it could measure a duration.
+    const [drawdown] = tiles(trendSection(contextFor('it', ONLY_FALLS)));
+
+    expect(drawdown!.hint).toBe(
+      `Dal picco precedente, minimo toccato il ${formatDate('it', '2024-06-01')}.`,
+    );
   });
 
   it('measures the run-up from the trough, not from the start', () => {

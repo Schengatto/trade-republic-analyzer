@@ -161,6 +161,84 @@ describe('setback', () => {
     expect(fall.worstDay.isNegative()).toBe(false);
     expect(fall.worstDay.toFixed(2)).toBe('40.00');
   });
+
+  it('dates the peak the fall started from, and the day it was made good', () => {
+    const points = account([
+      ['2024-02-01', 'AAA', '200.00'], // +100, net 100
+      ['2024-03-01', 'BBB', '40.00'], //  -60, net 40
+      ['2024-04-01', 'CCC', '200.00'], // +100, net 140
+    ]);
+    const fall = setback(points)!;
+
+    expect(fall.peakDate).toBe('2024-02-01');
+    expect(fall.troughDate).toBe('2024-03-01');
+    expect(fall.days).toBe(29); // February 2024 has 29 days.
+    expect(fall.recoveryDate).toBe('2024-04-01');
+  });
+
+  it('counts calendar days elapsed, so two consecutive days are one', () => {
+    const fall = setback(
+      account([
+        ['2024-02-01', 'AAA', '200.00'], // +100, net 100
+        ['2024-02-02', 'BBB', '40.00'], //  -60, net 40
+      ]),
+    )!;
+
+    expect(fall.days).toBe(1);
+  });
+
+  it('leaves the recovery open until the curve reaches the peak again', () => {
+    // The last day climbs, and climbs past the trough — but it stops below the
+    // 100 the fall started from, so the fall is still on.
+    const fall = setback(
+      account([
+        ['2024-02-01', 'AAA', '200.00'], // +100, net 100
+        ['2024-03-01', 'BBB', '40.00'], //  -60, net 40
+        ['2024-04-01', 'CCC', '150.00'], //  +50, net 90
+      ]),
+    )!;
+
+    expect(fall.drawdown.toFixed(2)).toBe('60.00');
+    expect(fall.recoveryDate).toBeNull();
+  });
+
+  it('recovers on the day the curve regains the peak, not the day it turns', () => {
+    const fall = setback(
+      account([
+        ['2024-02-01', 'AAA', '200.00'], // +100, net 100
+        ['2024-03-01', 'BBB', '40.00'], //  -60, net 40
+        ['2024-04-01', 'CCC', '150.00'], //  +50, net 90
+        ['2024-05-01', 'DDD', '160.00'], //  +60, net 150
+      ]),
+    )!;
+
+    expect(fall.recoveryDate).toBe('2024-05-01');
+  });
+
+  it('keeps the peak of the deepest fall when a higher one comes later', () => {
+    const points = account([
+      ['2024-02-01', 'AAA', '200.00'], // +100, net 100
+      ['2024-03-01', 'BBB', '40.00'], //  -60, net 40
+      ['2024-04-01', 'CCC', '300.00'], // +200, net 240
+      ['2024-05-01', 'DDD', '80.00'], //  -20, net 220
+    ]);
+    const fall = setback(points)!;
+
+    // The later peak is the higher one, but it belongs to the 20 fall.
+    expect(fall.drawdown.toFixed(2)).toBe('60.00');
+    expect(fall.peakDate).toBe('2024-02-01');
+    expect(fall.days).toBe(29);
+  });
+
+  it('has no day for a peak that is the zero the account opened at', () => {
+    // The first point is already negative: the fall is real, but it started
+    // from a zero that stood on no day of the series.
+    const fall = setback(account([['2024-02-01', 'AAA', '60.00']]))!;
+
+    expect(fall.drawdown.toFixed(2)).toBe('40.00');
+    expect(fall.peakDate).toBe('');
+    expect(fall.days).toBe(0);
+  });
 });
 
 describe('advance', () => {

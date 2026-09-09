@@ -5,14 +5,38 @@
  * reason a second axis is never offered here.
  */
 
-import { advance, setback, timeSeries } from '../../core/analytics';
+import { advance, setback, timeSeries, type Setback } from '../../core/analytics';
 import { el } from '../dom';
 import { figure } from '../chart/figure';
 import { dayNumber } from '../chart/geometry';
 import { lineChart } from '../chart/line';
 import { SERIES_1, SERIES_2 } from '../chart/palette';
 import { formatCurrency, formatDate } from '../format';
-import { section, signedCell, statTile, type ReportContext } from './common';
+import { daysLabel, section, signedCell, statTile, type ReportContext } from './common';
+
+/**
+ * The sentence under the largest fall: from when to when, and whether it is over.
+ *
+ * With no day for the peak — the fall started from the zero the account opened
+ * at — the sentence names the trough alone, as it always did: the first day of
+ * the series is not the peak's day, it is a day the curve had already left it.
+ */
+function drawdownHint({ language, t }: ReportContext, fall: Setback): string {
+  const trough = formatDate(language, fall.troughDate);
+  if (fall.peakDate === '') return t('trend.drawdown.hint', { date: trough });
+
+  const span = {
+    peak: formatDate(language, fall.peakDate),
+    trough,
+    days: daysLabel(t, language, fall.days),
+  };
+  return fall.recoveryDate === null
+    ? t('trend.drawdown.hint.open', span)
+    : t('trend.drawdown.hint.recovered', {
+        ...span,
+        recovery: formatDate(language, fall.recoveryDate),
+      });
+}
 
 export function trendSection(context: ReportContext): HTMLElement {
   const { report, language, t } = context;
@@ -45,7 +69,7 @@ export function trendSection(context: ReportContext): HTMLElement {
           statTile({
             label: t('trend.drawdown'),
             value: formatCurrency(language, fall.drawdown),
-            hint: t('trend.drawdown.hint', { date: formatDate(language, fall.troughDate) }),
+            hint: drawdownHint(context, fall),
           }),
         rise !== null &&
           statTile({

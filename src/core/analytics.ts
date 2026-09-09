@@ -47,6 +47,12 @@ export interface Setback {
   drawdown: Decimal;
   /** The day the deepest fall bottomed out. */
   troughDate: string;
+  /** The day of the peak it fell from. Empty when that peak is the seeded zero. */
+  peakDate: string;
+  /** Calendar days from that peak to the trough. Zero when there is no peak day. */
+  days: number;
+  /** The first day the curve climbed back to that peak, or null if it has not. */
+  recoveryDate: string | null;
   /** The worst single day's contribution, as a positive amount. */
   worstDay: Decimal;
   /** The day that contributed it. */
@@ -54,11 +60,37 @@ export interface Setback {
 }
 
 /**
- * How far the cumulative profit fell, and the worst single day inside it.
+ * The first day the curve stood at `level` again, after the day it bottomed out.
+ *
+ * The points are sorted, so the day strings compare directly. Null means the
+ * fall is still open — a fact about the account, not a missing figure.
+ */
+function recoveredOn(
+  points: readonly SeriesPoint[],
+  troughDate: string,
+  level: Decimal,
+): string | null {
+  for (const point of points) {
+    if (point.date > troughDate && !point.net.lessThan(level)) return point.date;
+  }
+  return null;
+}
+
+/**
+ * How far the cumulative profit fell, how long it took, and the worst single
+ * day inside it.
  *
  * The running peak starts at zero rather than at the first point: an account
  * that only ever loses has fallen from the zero it opened at, and starting the
  * peak at the first — already negative — point would report no fall at all.
+ * That seed is also why `peakDate` can be empty while the fall itself is real:
+ * the zero the account opened at stood on no particular day, and the first day
+ * of the series is one on which the curve had already dropped.
+ *
+ * The duration is calendar days elapsed between the two days, not days the
+ * account traded on: the money stayed down over the weekends too. Peak and
+ * trough can never be the same day — the fall from a peak is zero on the day
+ * that peak is set — so a duration that exists is at least one day.
  *
  * Null when nothing ever went backwards, which is not the same as a fall of
  * zero: a card that prints «-0,00 €» invites the reader to look for the day it
@@ -66,17 +98,27 @@ export interface Setback {
  */
 export function setback(points: readonly SeriesPoint[]): Setback | null {
   let peak = ZERO;
+  let peakDate = '';
   let drawdown = ZERO;
   let troughDate = '';
+  let fellFrom = ZERO;
+  let fellFromDate = '';
   let worstDay = ZERO;
   let worstDayDate = '';
 
   for (const point of points) {
-    if (point.net.greaterThan(peak)) peak = point.net;
+    if (point.net.greaterThan(peak)) {
+      peak = point.net;
+      peakDate = point.date;
+    }
     const fall = peak.minus(point.net);
     if (fall.greaterThan(drawdown)) {
       drawdown = fall;
       troughDate = point.date;
+      // The peak the deepest fall started from, kept apart from the running one:
+      // a later, higher peak belongs to a shallower fall.
+      fellFrom = peak;
+      fellFromDate = peakDate;
     }
     if (point.dayProfit.lessThan(worstDay)) {
       worstDay = point.dayProfit;
@@ -88,7 +130,15 @@ export function setback(points: readonly SeriesPoint[]): Setback | null {
   // only fall on a day that took something away, and a day that took something
   // away always leaves the curve below the peak it had just been at.
   if (troughDate === '') return null;
-  return { drawdown, troughDate, worstDay: worstDay.negated(), worstDayDate };
+  return {
+    drawdown,
+    troughDate,
+    peakDate: fellFromDate,
+    days: fellFromDate === '' ? 0 : daysBetween(fellFromDate, troughDate),
+    recoveryDate: recoveredOn(points, troughDate, fellFrom),
+    worstDay: worstDay.negated(),
+    worstDayDate,
+  };
 }
 
 export interface Advance {

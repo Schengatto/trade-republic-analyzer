@@ -97,6 +97,10 @@ export const it = {
   'trend.column.dayProfit': 'Variazione del giorno',
   'trend.drawdown': 'Discesa massima',
   'trend.drawdown.hint': 'Dal picco precedente, minimo toccato il {date}.',
+  'trend.drawdown.hint.recovered':
+    'Dal picco del {peak} al minimo del {trough}: {days}. Recuperata il {recovery}.',
+  'trend.drawdown.hint.open':
+    'Dal picco del {peak} al minimo del {trough}: {days}, non ancora recuperata.',
   'trend.runUp': 'Salita massima',
   'trend.runUp.hint': 'Dal minimo precedente, massimo toccato il {date}.',
   'trend.worstDay': 'Giorno peggiore',

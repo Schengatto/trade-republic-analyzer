@@ -84,6 +84,10 @@ export const de: Messages = {
   'trend.column.dayProfit': 'Veränderung am Tag',
   'trend.drawdown': 'Größter Rückgang',
   'trend.drawdown.hint': 'Vom vorherigen Höchststand, Tiefpunkt am {date}.',
+  'trend.drawdown.hint.recovered':
+    'Vom Höchststand am {peak} bis zum Tiefpunkt am {trough}: {days}. Aufgeholt am {recovery}.',
+  'trend.drawdown.hint.open':
+    'Vom Höchststand am {peak} bis zum Tiefpunkt am {trough}: {days}, noch nicht aufgeholt.',
   'trend.runUp': 'Größter Anstieg',
   'trend.runUp.hint': 'Vom vorherigen Tiefpunkt, Höchststand am {date}.',
   'trend.worstDay': 'Schlechtester Tag',

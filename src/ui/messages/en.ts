@@ -82,6 +82,10 @@ export const en: Messages = {
   'trend.column.dayProfit': 'Change on the day',
   'trend.drawdown': 'Largest fall',
   'trend.drawdown.hint': 'From the previous peak, bottoming out on {date}.',
+  'trend.drawdown.hint.recovered':
+    'From the peak on {peak} to the trough on {trough}: {days}. Recovered on {recovery}.',
+  'trend.drawdown.hint.open':
+    'From the peak on {peak} to the trough on {trough}: {days}, not recovered yet.',
   'trend.runUp': 'Largest rise',
   'trend.runUp.hint': 'From the previous trough, topping out on {date}.',
   'trend.worstDay': 'Worst day',
