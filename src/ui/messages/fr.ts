@@ -85,9 +85,27 @@ export const fr: Messages = {
   'trend.drawdown': 'Plus forte baisse',
   'trend.drawdown.hint': 'Depuis le sommet précédent, point bas le {date}.',
   'trend.drawdown.hint.recovered':
-    'Du sommet du {peak} au point bas du {trough} : {days}. Récupérée le {recovery}.',
+    'Du sommet du {peak} au point bas du {trough} : {days}. Récupérée le {recovery}, après {back} de plus.',
   'trend.drawdown.hint.open':
     'Du sommet du {peak} au point bas du {trough} : {days}, pas encore récupérée.',
+  'trend.episodes.heading': 'Baisses et récupérations',
+  'trend.episodes.note':
+    'Sont comptées les baisses de plus de {depth}, soit {ratio} de la plus profonde. De la plus profonde à la moins.',
+  'trend.episodes.count': 'Nombre de baisses',
+  'trend.episodes.count.hint.open': "La dernière n'est pas encore récupérée.",
+  'trend.episodes.count.hint.closed': 'Toutes récupérées.',
+  'trend.episodes.typical': 'Durée typique',
+  'trend.episodes.typical.hint':
+    'Médiane du sommet à la récupération, sur les baisses récupérées.',
+  'trend.episodes.longest': 'La plus longue',
+  'trend.episodes.longest.hint.recovered': 'Point bas le {trough}, récupérée le {recovery}.',
+  'trend.episodes.longest.hint.open': 'Point bas le {trough}, pas encore récupérée.',
+  'trend.episodes.column.peak': 'Du sommet',
+  'trend.episodes.column.trough': 'Au point bas',
+  'trend.episodes.column.depth': 'Profondeur',
+  'trend.episodes.column.fallDays': 'Durée',
+  'trend.episodes.column.recovery': 'Récupérée le',
+  'trend.episodes.column.recoveryDays': 'En',
   'trend.runUp': 'Plus forte hausse',
   'trend.runUp.hint': 'Depuis le point bas précédent, sommet le {date}.',
   'trend.worstDay': 'Pire journée',

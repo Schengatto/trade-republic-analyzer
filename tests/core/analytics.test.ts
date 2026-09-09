@@ -5,6 +5,7 @@ import {
   advance,
   anchorDate,
   costDrag,
+  drawdowns,
   holdingDuration,
   monthlyAggregates,
   monthlyMargins,
@@ -238,6 +239,151 @@ describe('setback', () => {
     expect(fall.drawdown.toFixed(2)).toBe('40.00');
     expect(fall.peakDate).toBe('');
     expect(fall.days).toBe(0);
+  });
+
+  it('times the recovery from the trough, not from the peak', () => {
+    // Measured from the trough so that it and `days` add up to the whole
+    // episode: 29 down and 31 back up is a fall that lasted 60 days in all.
+    const fall = setback(
+      account([
+        ['2024-02-01', 'AAA', '200.00'], // +100, net 100
+        ['2024-03-01', 'BBB', '40.00'], //  -60, net 40
+        ['2024-04-01', 'CCC', '200.00'], // +100, net 140
+      ]),
+    )!;
+
+    expect(fall.days).toBe(29);
+    expect(fall.recoveryDate).toBe('2024-04-01');
+    expect(fall.recoveryDays).toBe(31);
+  });
+
+  it('has no recovery time while the fall is still open', () => {
+    const fall = setback(
+      account([
+        ['2024-02-01', 'AAA', '200.00'], // +100, net 100
+        ['2024-03-01', 'BBB', '40.00'], //  -60, net 40
+      ]),
+    )!;
+
+    expect(fall.recoveryDate).toBeNull();
+    expect(fall.recoveryDays).toBeNull();
+  });
+});
+
+describe('drawdowns', () => {
+  it('has nothing to report about a series that never fell', () => {
+    expect(drawdowns([])).toBeNull();
+    expect(drawdowns(account([['2024-02-01', 'AAA', '150.00']]))).toBeNull();
+  });
+
+  it('ranks by depth but names the longest by its length', () => {
+    // The deepest fall is over in two months; the shallower one takes eight.
+    // Reporting the deepest as "the longest" is the mistake this catches.
+    const history = drawdowns(
+      account([
+        ['2024-02-01', 'AAA', '200.00'], // +100, net 100 — peak
+        ['2024-03-01', 'BBB', '40.00'], //  -60, net  40 — trough of the deep one
+        ['2024-04-01', 'CCC', '200.00'], // +100, net 140 — recovered, new peak
+        ['2024-05-01', 'DDD', '80.00'], //  -20, net 120
+        ['2024-06-01', 'EEE', '90.00'], //  -10, net 110 — trough of the long one
+        ['2024-12-01', 'FFF', '200.00'], // +100, net 210 — recovered
+      ]),
+    )!;
+
+    expect(history.episodes.map((one) => one.depth.toFixed(2))).toEqual(['60.00', '30.00']);
+    expect(history.episodes.map((one) => one.days)).toEqual([60, 244]);
+    expect(history.longest.depth.toFixed(2)).toBe('30.00');
+    expect(history.longest.troughDate).toBe('2024-06-01');
+    expect(history.openCount).toBe(0);
+    // Two lengths, so the median is their mean.
+    expect(history.medianDays).toBe(152);
+  });
+
+  it('gives each episode its own peak, trough and recovery', () => {
+    const [deep] = drawdowns(
+      account([
+        ['2024-02-01', 'AAA', '200.00'], // +100, net 100
+        ['2024-03-01', 'BBB', '40.00'], //  -60, net  40
+        ['2024-04-01', 'CCC', '200.00'], // +100, net 140
+        ['2024-05-01', 'DDD', '80.00'], //  -20, net 120
+        ['2024-06-01', 'EEE', '200.00'], // +100, net 220
+      ]),
+    )!.episodes;
+
+    expect(deep!.peakDate).toBe('2024-02-01');
+    expect(deep!.troughDate).toBe('2024-03-01');
+    expect(deep!.fallDays).toBe(29);
+    expect(deep!.recoveryDate).toBe('2024-04-01');
+    expect(deep!.recoveryDays).toBe(31);
+    expect(deep!.days).toBe(60);
+    expect(deep!.open).toBe(false);
+  });
+
+  it('counts a fall of exactly a tenth of the deepest, and drops one below it', () => {
+    const history = drawdowns(
+      account([
+        ['2024-02-01', 'AAA', '200.00'], // +100, net 100
+        ['2024-03-01', 'BBB', '40.00'], //   -60, net 40 — the deepest
+        ['2024-04-01', 'CCC', '200.00'], // +100, net 140
+        ['2024-05-01', 'DDD', '94.00'], //     -6, net 134 — exactly a tenth of 60
+        ['2024-06-01', 'EEE', '200.00'], // +100, net 234
+        ['2024-07-01', 'FFF', '94.01'], //  -5.99, net 228.01 — just under it
+        ['2024-08-01', 'GGG', '200.00'], // +100, net 328.01
+      ]),
+    )!;
+
+    expect(history.minDepth.toFixed(2)).toBe('6.00');
+    expect(history.episodes.map((one) => one.depth.toFixed(2))).toEqual(['60.00', '6.00']);
+  });
+
+  it('leaves the last fall open and runs its length to the last day', () => {
+    const history = drawdowns(
+      account([
+        ['2024-02-01', 'AAA', '200.00'], // +100, net 100
+        ['2024-03-01', 'BBB', '40.00'], //  -60, net  40
+        ['2024-04-01', 'CCC', '200.00'], // +100, net 140 — peak
+        ['2024-05-01', 'DDD', '80.00'], //  -20, net 120 — trough, never recovered
+        ['2024-06-01', 'EEE', '110.00'], // +10, net 130 — still under the peak
+      ]),
+    )!;
+    const open = history.episodes[1]!;
+
+    expect(open.open).toBe(true);
+    expect(open.recoveryDate).toBeNull();
+    expect(open.recoveryDays).toBeNull();
+    // 30 days down to the trough, then 31 more still under water: a floor, not
+    // a length — which is why it stays out of the median below.
+    expect(open.days).toBe(61);
+    expect(history.openCount).toBe(1);
+    expect(history.medianDays).toBe(60);
+  });
+
+  it('has no median while nothing has ended', () => {
+    const history = drawdowns(
+      account([
+        ['2024-02-01', 'AAA', '200.00'], // +100, net 100
+        ['2024-03-01', 'BBB', '40.00'], //  -60, net  40 — never recovered
+      ]),
+    )!;
+
+    expect(history.medianDays).toBeNull();
+    expect(history.longest.open).toBe(true);
+  });
+
+  it('gives no peak day to a fall that started at the zero the account opened at', () => {
+    const [first] = drawdowns(
+      account([
+        ['2024-02-01', 'AAA', '60.00'], //  -40, net -40
+        ['2024-03-01', 'BBB', '200.00'], // +100, net  60
+      ]),
+    )!.episodes;
+
+    expect(first!.peakDate).toBe('');
+    expect(first!.fallDays).toBe(0);
+    expect(first!.recoveryDate).toBe('2024-03-01');
+    // The whole episode is the climb back: the fall itself happened on no
+    // measurable span, since the zero it fell from stood on no day.
+    expect(first!.days).toBe(29);
   });
 });
 

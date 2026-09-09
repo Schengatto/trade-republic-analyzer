@@ -53,6 +53,12 @@ export interface Setback {
   days: number;
   /** The first day the curve climbed back to that peak, or null if it has not. */
   recoveryDate: string | null;
+  /**
+   * Calendar days from the trough back to that peak, or null while the fall is
+   * open. Measured from the trough rather than from the peak so that it and
+   * `days` add up to the whole episode instead of overlapping it.
+   */
+  recoveryDays: number | null;
   /** The worst single day's contribution, as a positive amount. */
   worstDay: Decimal;
   /** The day that contributed it. */
@@ -130,12 +136,14 @@ export function setback(points: readonly SeriesPoint[]): Setback | null {
   // only fall on a day that took something away, and a day that took something
   // away always leaves the curve below the peak it had just been at.
   if (troughDate === '') return null;
+  const recoveryDate = recoveredOn(points, troughDate, fellFrom);
   return {
     drawdown,
     troughDate,
     peakDate: fellFromDate,
     days: fellFromDate === '' ? 0 : daysBetween(fellFromDate, troughDate),
-    recoveryDate: recoveredOn(points, troughDate, fellFrom),
+    recoveryDate,
+    recoveryDays: recoveryDate === null ? null : daysBetween(troughDate, recoveryDate),
     worstDay: worstDay.negated(),
     worstDayDate,
   };
@@ -188,6 +196,153 @@ export function advance(points: readonly SeriesPoint[]): Advance | null {
   // leaves the curve above the trough it had just been at.
   if (peakDate === '') return null;
   return { runUp, peakDate, bestDay, bestDayDate };
+}
+
+// --- drawdown episodes ----------------------------------------------------
+
+/**
+ * How small a fall may be and still be counted, as a share of the deepest one.
+ *
+ * A share rather than an amount: the cumulative profit starts at zero, so a
+ * percentage of the running peak is meaningless early on — a peak of 20 € that
+ * halves is a 50% fall of no consequence — and a fixed euro threshold would
+ * have to be retuned as the account grows. Ten percent of the worst fall in
+ * this very history scales itself, and the report states the euro figure it
+ * works out to so the reader knows what was counted.
+ */
+export const DRAWDOWN_MIN_DEPTH_RATIO = dec('0.1');
+
+/**
+ * The same threshold as a percentage, for the sentence that states it.
+ *
+ * Derived here rather than multiplied out where it is printed: the report does
+ * no arithmetic, and two constants written by hand could drift apart.
+ */
+export const DRAWDOWN_MIN_DEPTH_PERCENT = DRAWDOWN_MIN_DEPTH_RATIO.times(100);
+
+export interface DrawdownEpisode {
+  /** How far the curve fell below the peak that started this episode. Positive. */
+  depth: Decimal;
+  /** The day of that peak. Empty when it is the zero the account opened at. */
+  peakDate: string;
+  /** The day this episode bottomed out. */
+  troughDate: string;
+  /** Calendar days from the peak to the trough. Zero when there is no peak day. */
+  fallDays: number;
+  /** The day the curve stood at that peak again, or null while it still has not. */
+  recoveryDate: string | null;
+  /** Calendar days from the trough back up, or null while the episode is open. */
+  recoveryDays: number | null;
+  /**
+   * The whole episode in calendar days, peak to recovery. For an open episode
+   * it runs to the last day in the series, which makes it a floor rather than a
+   * length — `open` is what says which of the two you are reading.
+   */
+  days: number;
+  /** True while the curve has not been back to the peak it fell from. */
+  open: boolean;
+}
+
+export interface DrawdownHistory {
+  /** Every fall of at least `minDepth`, deepest first. */
+  episodes: DrawdownEpisode[];
+  /** The threshold actually applied, for the report to state. */
+  minDepth: Decimal;
+  /**
+   * Median length of the episodes that ended. Null when none of them has: an
+   * episode still running has no length to take a median of, and counting its
+   * days so far among finished ones would report a length nobody has lived.
+   */
+  medianDays: number | null;
+  /** The longest of them, open or not; ties go to the deeper one. */
+  longest: DrawdownEpisode;
+  /** How many are still open. At most one — only the last fall can be. */
+  openCount: number;
+}
+
+/**
+ * Every fall worth naming, with how long each took to happen and to be undone.
+ *
+ * `setback` answers "how bad was the worst of it"; this answers "how often, and
+ * for how long". An episode opens the day the curve leaves a peak and closes
+ * the first day it stands at that peak again — the same test `recoveredOn`
+ * applies, so the two can never disagree about whether a fall is over.
+ *
+ * Null when the curve never went backwards. A history of nothing but rises has
+ * no episodes to count, and a count of zero beside a median of nothing is a row
+ * of empty cells rather than a statement.
+ */
+export function drawdowns(points: readonly SeriesPoint[]): DrawdownHistory | null {
+  const all: DrawdownEpisode[] = [];
+  const lastDate = points.at(-1)?.date ?? '';
+
+  // The peak seeded at zero, exactly as in `setback`: an account that only ever
+  // loses is below the zero it opened at, and that fall is a real episode whose
+  // peak simply fell on no day.
+  let peak = ZERO;
+  let peakDate = '';
+  let open: { depth: Decimal; troughDate: string; peakDate: string } | null = null;
+
+  for (const point of points) {
+    if (point.net.lessThan(peak)) {
+      const fall = peak.minus(point.net);
+      if (open === null) {
+        open = { depth: fall, troughDate: point.date, peakDate };
+      } else if (fall.greaterThan(open.depth)) {
+        open.depth = fall;
+        open.troughDate = point.date;
+      }
+      continue;
+    }
+
+    // At or above the peak: any episode under way ends here, today.
+    if (open !== null) {
+      all.push(episode(open, point.date, lastDate));
+      open = null;
+    }
+    if (point.net.greaterThan(peak)) {
+      peak = point.net;
+      peakDate = point.date;
+    }
+  }
+  if (open !== null) all.push(episode(open, null, lastDate));
+  if (all.length === 0) return null;
+
+  const deepest = all.reduce((worst, one) => (one.depth.greaterThan(worst) ? one.depth : worst), ZERO);
+  const minDepth = deepest.times(DRAWDOWN_MIN_DEPTH_RATIO);
+  const episodes = all
+    .filter((one) => !one.depth.lessThan(minDepth))
+    .sort((a, b) => b.depth.comparedTo(a.depth));
+
+  const finished = episodes.filter((one) => !one.open).map((one) => one.days);
+  return {
+    episodes,
+    minDepth,
+    medianDays: finished.length === 0 ? null : median(finished),
+    // Deepest first already, and the comparison is strict, so equal lengths
+    // leave the deeper episode holding the title.
+    longest: episodes.reduce((longest, one) => (one.days > longest.days ? one : longest)),
+    openCount: episodes.filter((one) => one.open).length,
+  };
+}
+
+function episode(
+  fall: { depth: Decimal; troughDate: string; peakDate: string },
+  recoveryDate: string | null,
+  lastDate: string,
+): DrawdownEpisode {
+  const fallDays = fall.peakDate === '' ? 0 : daysBetween(fall.peakDate, fall.troughDate);
+  const recoveryDays = recoveryDate === null ? null : daysBetween(fall.troughDate, recoveryDate);
+  return {
+    depth: fall.depth,
+    peakDate: fall.peakDate,
+    troughDate: fall.troughDate,
+    fallDays,
+    recoveryDate,
+    recoveryDays,
+    days: fallDays + (recoveryDays ?? daysBetween(fall.troughDate, lastDate)),
+    open: recoveryDate === null,
+  };
 }
 
 // --- date helpers ---------------------------------------------------------

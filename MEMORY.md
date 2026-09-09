@@ -95,7 +95,7 @@ waits for the other, so a CI-only gate would not stop a bad deploy.
 ## Current state
 
 Live at <https://schengatto.github.io/trade-republic-analyzer/>, deployed from
-`main` by `pages.yml`. 349 tests across 17 files. The whole gate — `lint`,
+`main` by `pages.yml`. 959 tests across 44 files. The whole gate — `lint`,
 `typecheck`, `test`, `build` (which ends in `check:bundle`) and `test:e2e` —
 is green locally and in both workflows.
 

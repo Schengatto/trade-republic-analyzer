@@ -85,9 +85,27 @@ export const es: Messages = {
   'trend.drawdown': 'Mayor caída',
   'trend.drawdown.hint': 'Desde el máximo anterior, con mínimo el {date}.',
   'trend.drawdown.hint.recovered':
-    'Del máximo del {peak} al mínimo del {trough}: {days}. Recuperada el {recovery}.',
+    'Del máximo del {peak} al mínimo del {trough}: {days}. Recuperada el {recovery}, tras otros {back}.',
   'trend.drawdown.hint.open':
     'Del máximo del {peak} al mínimo del {trough}: {days}, aún no recuperada.',
+  'trend.episodes.heading': 'Caídas y recuperaciones',
+  'trend.episodes.note':
+    'Se cuentan las caídas de más de {depth}, el {ratio} de la más profunda. De la más profunda a la menos.',
+  'trend.episodes.count': 'Número de caídas',
+  'trend.episodes.count.hint.open': 'La última aún no se ha recuperado.',
+  'trend.episodes.count.hint.closed': 'Todas recuperadas.',
+  'trend.episodes.typical': 'Duración típica',
+  'trend.episodes.typical.hint':
+    'Mediana del máximo a la recuperación, sobre las caídas recuperadas.',
+  'trend.episodes.longest': 'La más larga',
+  'trend.episodes.longest.hint.recovered': 'Mínimo el {trough}, recuperada el {recovery}.',
+  'trend.episodes.longest.hint.open': 'Mínimo el {trough}, aún no recuperada.',
+  'trend.episodes.column.peak': 'Desde el máximo',
+  'trend.episodes.column.trough': 'Al mínimo',
+  'trend.episodes.column.depth': 'Profundidad',
+  'trend.episodes.column.fallDays': 'Duración',
+  'trend.episodes.column.recovery': 'Recuperada el',
+  'trend.episodes.column.recoveryDays': 'En',
   'trend.runUp': 'Mayor subida',
   'trend.runUp.hint': 'Desde el mínimo anterior, con máximo el {date}.',
   'trend.worstDay': 'Peor día',

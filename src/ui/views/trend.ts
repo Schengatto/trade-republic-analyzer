@@ -5,14 +5,31 @@
  * reason a second axis is never offered here.
  */
 
-import { advance, setback, timeSeries, type Setback } from '../../core/analytics';
+import {
+  DRAWDOWN_MIN_DEPTH_PERCENT,
+  advance,
+  drawdowns,
+  setback,
+  timeSeries,
+  type DrawdownEpisode,
+  type DrawdownHistory,
+  type Setback,
+} from '../../core/analytics';
 import { el } from '../dom';
-import { figure } from '../chart/figure';
+import { dataTable, figure, type Cell } from '../chart/figure';
 import { dayNumber } from '../chart/geometry';
 import { lineChart } from '../chart/line';
 import { SERIES_1, SERIES_2 } from '../chart/palette';
-import { formatCurrency, formatDate } from '../format';
-import { daysLabel, section, signedCell, statTile, type ReportContext } from './common';
+import { formatCurrency, formatDate, formatInteger, formatPercent } from '../format';
+import {
+  NOTHING,
+  daysLabel,
+  note,
+  section,
+  signedCell,
+  statTile,
+  type ReportContext,
+} from './common';
 
 /**
  * The sentence under the largest fall: from when to when, and whether it is over.
@@ -35,7 +52,98 @@ function drawdownHint({ language, t }: ReportContext, fall: Setback): string {
     : t('trend.drawdown.hint.recovered', {
         ...span,
         recovery: formatDate(language, fall.recoveryDate),
+        // Measured from the trough, so that it and `days` add up to the whole
+        // episode: two spans that overlapped would invite the reader to add
+        // them anyway and land on a number that never happened.
+        back: daysLabel(t, language, fall.recoveryDays ?? 0),
       });
+}
+
+/**
+ * The block under the tiles: how often the curve has fallen, and for how long.
+ *
+ * The three figures do not all speak about the same set, and that is deliberate
+ * rather than an oversight to tidy up: a fall still under way has no length to
+ * average, so the median takes only the ones that ended, while the longest is
+ * taken over all of them — dropping an open fall from that one would hide the
+ * very case a reader worries about. Each hint names the set it counted.
+ */
+function episodeBlock(context: ReportContext, history: DrawdownHistory): (HTMLElement | false)[] {
+  const { language, t } = context;
+  const { episodes, longest, medianDays, openCount } = history;
+
+  const longestHint = {
+    trough: formatDate(language, longest.troughDate),
+    recovery: longest.recoveryDate === null ? '' : formatDate(language, longest.recoveryDate),
+  };
+
+  return [
+    el('h3', { class: 'subheading' }, [t('trend.episodes.heading')]),
+    note(
+      t('trend.episodes.note', {
+        depth: formatCurrency(language, history.minDepth),
+        ratio: formatPercent(language, DRAWDOWN_MIN_DEPTH_PERCENT, 0),
+      }),
+    ),
+    el('div', { class: 'tiles' }, [
+      statTile({
+        label: t('trend.episodes.count'),
+        value: formatInteger(language, episodes.length),
+        // At most one episode can be open — only the last fall has no later
+        // point to close it — so the open wording speaks of a single one.
+        hint: t(openCount > 0 ? 'trend.episodes.count.hint.open' : 'trend.episodes.count.hint.closed'),
+      }),
+      // A type guard rather than a branch: the block only renders from two
+      // episodes up, and since only the last fall can still be open, two
+      // episodes always include one that ended.
+      medianDays !== null &&
+        statTile({
+          label: t('trend.episodes.typical'),
+          value: daysLabel(t, language, medianDays),
+          hint: t('trend.episodes.typical.hint'),
+        }),
+      statTile({
+        label: t('trend.episodes.longest'),
+        value: daysLabel(t, language, longest.days),
+        hint: t(
+          longest.open ? 'trend.episodes.longest.hint.open' : 'trend.episodes.longest.hint.recovered',
+          longestHint,
+        ),
+      }),
+    ]),
+    el('div', { class: 'table-scroll' }, [
+      dataTable(
+        {
+          columns: [
+            t('trend.episodes.column.peak'),
+            t('trend.episodes.column.trough'),
+            t('trend.episodes.column.depth'),
+            t('trend.episodes.column.fallDays'),
+            t('trend.episodes.column.recovery'),
+            t('trend.episodes.column.recoveryDays'),
+          ],
+          numericFrom: 1,
+          rows: episodes.map((one) => episodeRow(context, one)),
+        },
+        t('trend.episodes.heading'),
+      ),
+    ]),
+  ];
+}
+
+function episodeRow({ language, t }: ReportContext, one: DrawdownEpisode): Cell[] {
+  // A fall from the seeded zero has no peak day, and so no span from one: the
+  // first day of the series is a day the curve had already left that zero, and
+  // «0 giorni» in the duration column would claim it fell and recovered at once.
+  const fromPeak = one.peakDate === '';
+  return [
+    fromPeak ? NOTHING : formatDate(language, one.peakDate),
+    formatDate(language, one.troughDate),
+    formatCurrency(language, one.depth),
+    fromPeak ? NOTHING : daysLabel(t, language, one.fallDays),
+    one.recoveryDate === null ? NOTHING : formatDate(language, one.recoveryDate),
+    one.recoveryDays === null ? NOTHING : daysLabel(t, language, one.recoveryDays),
+  ];
 }
 
 export function trendSection(context: ReportContext): HTMLElement {
@@ -43,6 +151,7 @@ export function trendSection(context: ReportContext): HTMLElement {
   const points = timeSeries(report);
   const fall = setback(points);
   const rise = advance(points);
+  const history = drawdowns(points);
 
   const series = [
     { key: 'net', label: t('trend.series.net'), color: SERIES_1, values: points.map((point) => point.net.toNumber()) },
@@ -90,6 +199,14 @@ export function trendSection(context: ReportContext): HTMLElement {
             hint: t('trend.bestDay.hint', { date: formatDate(language, rise.bestDayDate) }),
           }),
       ]),
+    // Between the tiles and the chart: the tiles name the worst fall, this says
+    // how the account has fallen in general, and the line below draws both.
+    //
+    // From two episodes up. With a single fall there is nothing to count, take
+    // a median of, or rank, and every cell of the block would restate the tile
+    // above it — which already names that fall's peak, trough, length and
+    // recovery in one sentence.
+    ...(history !== null && history.episodes.length > 1 ? episodeBlock(context, history) : []),
     figure({
       t,
       title: t('trend.heading'),

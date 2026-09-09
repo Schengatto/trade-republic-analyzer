@@ -85,9 +85,27 @@ export const de: Messages = {
   'trend.drawdown': 'Größter Rückgang',
   'trend.drawdown.hint': 'Vom vorherigen Höchststand, Tiefpunkt am {date}.',
   'trend.drawdown.hint.recovered':
-    'Vom Höchststand am {peak} bis zum Tiefpunkt am {trough}: {days}. Aufgeholt am {recovery}.',
+    'Vom Höchststand am {peak} bis zum Tiefpunkt am {trough}: {days}. Aufgeholt am {recovery}, nach weiteren {back}.',
   'trend.drawdown.hint.open':
     'Vom Höchststand am {peak} bis zum Tiefpunkt am {trough}: {days}, noch nicht aufgeholt.',
+  'trend.episodes.heading': 'Rückgänge und Erholungen',
+  'trend.episodes.note':
+    'Gezählt werden Rückgänge über {depth}, {ratio} des tiefsten. Der tiefste zuerst.',
+  'trend.episodes.count': 'Anzahl der Rückgänge',
+  'trend.episodes.count.hint.open': 'Der letzte ist noch nicht aufgeholt.',
+  'trend.episodes.count.hint.closed': 'Alle wieder aufgeholt.',
+  'trend.episodes.typical': 'Typische Dauer',
+  'trend.episodes.typical.hint':
+    'Median vom Höchststand bis zur Erholung, über die aufgeholten Rückgänge.',
+  'trend.episodes.longest': 'Der längste',
+  'trend.episodes.longest.hint.recovered': 'Tiefpunkt am {trough}, aufgeholt am {recovery}.',
+  'trend.episodes.longest.hint.open': 'Tiefpunkt am {trough}, noch nicht aufgeholt.',
+  'trend.episodes.column.peak': 'Vom Höchststand',
+  'trend.episodes.column.trough': 'Zum Tiefpunkt',
+  'trend.episodes.column.depth': 'Tiefe',
+  'trend.episodes.column.fallDays': 'Dauer',
+  'trend.episodes.column.recovery': 'Aufgeholt am',
+  'trend.episodes.column.recoveryDays': 'In',
   'trend.runUp': 'Größter Anstieg',
   'trend.runUp.hint': 'Vom vorherigen Tiefpunkt, Höchststand am {date}.',
   'trend.worstDay': 'Schlechtester Tag',
